@@ -16,6 +16,7 @@ from pathlib import Path
 from pprint import pformat
 from uri import URI
 from uuid import uuid4
+import validators
 
 logger = logging.getLogger(__name__)
 
@@ -181,4 +182,10 @@ class Feature:
         else:
             v = value
         if v:
-            self._uri = URI(v)
+            this_uri = URI(v)
+            scheme = this_uri.scheme
+            if scheme:
+                if scheme in ["https", "http"]:
+                    if not validators.url(this_uri.uri):
+                        raise ValueError(f"Invalid URI: {v}.")
+            self._uri = this_uri

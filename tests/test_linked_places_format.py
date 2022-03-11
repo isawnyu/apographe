@@ -9,6 +9,7 @@
 Test the apographe.linked_places_format module
 """
 from apographe.linked_places_format import Feature, Properties
+import logging
 import pytest
 
 
@@ -50,3 +51,14 @@ class TestFeature:
         assert f.id is None
         assert f.uri is None
         assert isinstance(f.internal_id, str)
+
+    def test_uris(self):
+        uri = "https://pleiades.stoa.org/places/12345/json"
+        f = Feature(uri=uri)
+        assert f.uri == uri
+        uri = "https://edh.ub.uni-heidelberg.de/edh/geographie/G013662/json"
+        f.uri = uri
+        assert f.uri == uri
+        uri = "https:// 1 bad web uri"
+        with pytest.raises(ValueError):
+            f.uri = uri
