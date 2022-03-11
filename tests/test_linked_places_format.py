@@ -9,6 +9,7 @@
 Test the apographe.linked_places_format module
 """
 from apographe.linked_places_format import Properties
+import pytest
 
 
 class TestProperties:
@@ -22,8 +23,17 @@ class TestProperties:
         assert p.ccodes == ["GB"]
         p = Properties(ccodes=["GB", "ESP"])
         assert set(p.ccodes) == {"GB", "ES"}  # NB substitution of preferred form
+        assert set(p.country_names) == {
+            "Spain",
+            "United Kingdom of Great Britain and Northern Ireland",
+        }
+        p.remove_ccode("ES")
+        assert p.ccodes == ["GB"]
         p = Properties(ccodes=["Mexico"])
         assert p.ccodes == ["MX"]
+        p.remove_ccode("Mexico")
+        with pytest.raises(KeyError):
+            p.remove_ccode("Narnia")
 
     def test_titles(self):
         p = Properties(title="Moontown")

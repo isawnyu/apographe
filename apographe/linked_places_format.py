@@ -22,6 +22,7 @@ logger = logging.getLogger(__name__)
 # determine valid country codes/names and their preferred forms
 ccodes_path = Path("data/country-codes.json")
 ccodes_valid = dict()
+country_names = dict()
 with open(ccodes_path, "r", encoding="utf-8") as fp:
     ccodes_data = json.load(fp)
 del fp
@@ -39,17 +40,11 @@ for entry in ccodes_data:
         "official_name_es",
         "official_name_fr",
         "official_name_ru",
-        "UNTERM Arabic Formal",
         "UNTERM Arabic Short",
-        "UNTERM Chinese Formal",
         "UNTERM Chinese Short",
-        "UNTERM English Formal",
         "UNTERM English Short",
-        "UNTERM French Formal",
         "UNTERM French Short",
-        "UNTERM Russian Formal",
         "UNTERM Russian Short",
-        "UNTERM Spanish Formal",
         "UNTERM Spanish Short",
     ]:
         value = None
@@ -82,6 +77,11 @@ for entry in ccodes_data:
                 raise RuntimeError(
                     f"collision: '{value}' currently == {ccodes_valid[value]} failed == {preferred}"
                 )
+
+        if k == "ISO3166-1-Alpha-2":
+            name = entry["official_name_en"]
+            if name:
+                country_names[value] = name
 del ccodes_data
 del ccodes_path
 
@@ -105,6 +105,10 @@ class Properties:
         for c in ccodes:
             self.add_ccode(c)
 
+    @property
+    def country_names(self):
+        return [country_names[c] for c in self.ccodes]
+
     def add_ccode(self, ccode: str):
         try:
             preferred_code = ccodes_valid[ccode]
@@ -116,7 +120,18 @@ class Properties:
         self._ccodes.add(preferred_code)
 
     def remove_ccode(self, ccode: str):
-        self._ccodes.pop(ccode)
+        try:
+            self._ccodes.remove(ccode)
+        except KeyError as original:
+            try:
+                preferred = ccodes_valid[ccode]
+            except KeyError:
+                raise original
+            else:
+                try:
+                    self._ccodes.remove(preferred)
+                except KeyError:
+                    raise original
 
     # title: arbitrary unicode strings
     @property
