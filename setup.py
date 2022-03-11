@@ -29,6 +29,8 @@ setuptools.setup(
     ],
     install_requires=[
         "feedparser",
+        "markupsafe",
+        "uri @ git+https://github.com/marrow/uri.git@5b58db87451ca4680004a8993a56bfc4dafff4d4",
         "validators",
         "webiquette @ git+https://github.com/paregorios/webiquette.git",
     ],
