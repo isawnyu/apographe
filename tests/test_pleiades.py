@@ -78,11 +78,11 @@ class TestPleiadesQueries:
             "Description": "Punic",
             "getFeatureType": "temple-2",
             "location_precision:list": "precise",
-            "lowerLeft": "2.0001,36.0001",
+            "lowerLeft": "2.0001,36.0001",  # shaved bbox coordinates because of weird Pleiades geosearch behavior
             "portal_type:list": "Place",
             "predicate": "intersection",
             "review_state:list": "published",
             "SearchableText": "unusual",
             "Subject:list": [("Ammon", "Amun"), "OR"],
-            "upperRight": "2.4999,36.4999",
+            "upperRight": "2.4999,36.4999",  # shaved
         }
