@@ -9,9 +9,7 @@
 Base class for gazetteers
 """
 
-import logging
-
-logger = logging.getLogger(__name__)
+from apographe.place import Place
 
 
 class Gazetteer:
@@ -19,3 +17,8 @@ class Gazetteer:
 
     def __init__(self, name: str):
         self.name = name
+
+    def make_place(self, id: str, raw: dict):
+        """Create a standardized place object"""
+        # override this method for each gazetteer
+        return Place(id, raw)

@@ -10,7 +10,6 @@ Gazetteer Inferface for the Pleiades gazetteer of ancient places
 """
 
 from apographe.gazetteer import Gazetteer
-from apographe.place import Place
 from apographe.web import BackendWeb
 import logging
 
@@ -28,11 +27,3 @@ class Pleiades(BackendWeb, Gazetteer):
             "user_agent": "ApographeTester/0.0.1 (+https://github.org/isawnyu/apographe)",
         }
         BackendWeb.__init__(self, **kwargs)
-
-    def make_place(self, id: str, raw: dict):
-        return PleiadesPlace(id, raw)
-
-
-class PleiadesPlace(Place):
-    def __init__(self, id: str, raw: dict):
-        Place.__init__(self, id, raw)
