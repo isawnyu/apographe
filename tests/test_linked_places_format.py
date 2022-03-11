@@ -8,7 +8,7 @@
 """
 Test the apographe.linked_places_format module
 """
-from apographe.linked_places_format import Properties
+from apographe.linked_places_format import Feature, Properties
 import pytest
 
 
@@ -42,3 +42,11 @@ class TestProperties:
         assert p.title == "Brownsboro"
         p.title = "    \t"
         assert p.title == ""
+
+
+class TestFeature:
+    def test_defaults(self):
+        f = Feature()
+        assert f.id is None
+        assert f.uri is None
+        assert isinstance(f.internal_id, str)

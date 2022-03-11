@@ -144,7 +144,7 @@ class Properties:
 
 
 class Feature:
-    def __init__(self, id: str = "", uri: URI = None, **kwargs):
+    def __init__(self, id: str = None, uri: URI = None, **kwargs):
         self._id_internal = uuid4().hex
         self._id = None
         self._uri = None
@@ -165,12 +165,14 @@ class Feature:
         self._id = normtext(value)
 
     @property
-    def uri(self, value):
-        return self._uri.uri
-
-    @property
     def internal_id(self):
         return self._id_internal
+
+    @property
+    def uri(self):
+        if self._uri is None:
+            return None
+        return self._uri.uri
 
     @uri.setter
     def uri(self, value):
@@ -179,4 +181,4 @@ class Feature:
         else:
             v = value
         if v:
-            self._uri = URI(value)
+            self._uri = URI(v)
