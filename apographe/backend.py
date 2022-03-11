@@ -37,8 +37,7 @@ class Backend:
 
     def configure_backend(self, backend: str, config: dict):
         """Store configuration data for a named backend"""
-        if self._backend_supported(backend):
-            self._backends[backend] = config
+        self._backends[backend] = config
 
     def _backend_supported(self, backend: str):
         """Raise RuntimeError if named backend has not been registered"""
