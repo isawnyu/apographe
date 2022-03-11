@@ -8,7 +8,7 @@
 """
 Test the apographe.linked_places_format module
 """
-from apographe.linked_places_format import Feature, Properties
+from apographe.linked_places_format import Feature, Name, Properties
 import logging
 import pytest
 import re
@@ -79,3 +79,26 @@ class TestFeature:
         uri = "https:// 1 bad web uri"
         with pytest.raises(ValueError):
             f.uri = uri
+
+
+class TestName:
+    def test_lang(self):
+        n = Name()
+        assert n.lang == "und"
+        n = Name(lang="en-Arab-US")
+        assert n.lang == "en-Arab-US"
+        assert n.language_subtag == "en"
+        assert n.region_subtag == "US"
+        assert n.script_subtag == "Arab"
+        n.lang = "en"
+        assert n.lang == "en"
+        assert n.language_subtag == "en"
+        assert n.region_subtag is None
+        assert n.script_subtag == "Latn"
+        n.lang = "grc"
+        assert n.lang == "grc"
+        assert n.language_subtag == "grc"
+        assert n.region_subtag is None
+        assert (
+            n.script_subtag is None
+        )  # sadly, this is what the IANA registry says: no default script for "grc"

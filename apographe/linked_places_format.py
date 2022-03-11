@@ -11,8 +11,8 @@ https://github.com/LinkedPasts/linked-places-format
 """
 
 from apographe.countries import ccodes_valid, country_names
+from apographe.languages_and_scripts import LanguageAware
 from apographe.text import normtext
-import json
 import logging
 from pathlib import Path
 from pprint import pformat
@@ -23,15 +23,13 @@ import validators
 logger = logging.getLogger(__name__)
 
 
-class Name:
-    def __init__(self, toponym: str = "", lang: str = ""):
-        self._toponym = None
-        self._lang = "und"
+class Name(LanguageAware):
+    def __init__(self, toponym: str = "", **kwargs):
+        LanguageAware.__init__(self, **kwargs)
 
+        self._toponym = None
         if toponym:
             self.toponym = toponym
-        if lang:
-            self.lang = lang
 
 
 class Properties:
