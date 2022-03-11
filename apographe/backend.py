@@ -10,7 +10,7 @@ Mixin to provide basic backend support for a gazetteer
 """
 
 
-from xml.dom.minidom import Attr
+from pprint import pprint
 
 
 class Backend:
@@ -35,9 +35,17 @@ class Backend:
         if self._backend_supported(backend):
             self._current_backend = backend
 
+    def backend_configuration(self, backend: str):
+        return self._backends[backend]
+
     def configure_backend(self, backend: str, config: dict):
         """Store configuration data for a named backend"""
         self._backends[backend] = config
+
+    def get(self, id: str):
+        r = self._backends[self._current_backend]["get"](id)
+        pprint(r.json(), indent=4)
+        return self.make_place(id, r.json())
 
     def _backend_supported(self, backend: str):
         """Raise RuntimeError if named backend has not been registered"""

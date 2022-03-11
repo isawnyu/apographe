@@ -27,6 +27,9 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=[],
+    install_requires=[
+        "validators",
+        "webiquette @ git+https://github.com/paregorios/webiquette.git",
+    ],
     python_requires="==3.10.2",
 )

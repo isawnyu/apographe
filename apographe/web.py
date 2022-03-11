@@ -98,18 +98,18 @@ class BackendWeb(Backend):
 
     def _web_get(self, id: str):
         """HTTP GET using caching, robots:crawl-delay, etc."""
+        config = self.backend_configuration("web")
         uri = urlunparse(
             (
-                f"{self.scheme}://",
-                self.netloc,
-                f"{self.place_path}{id}{self.place_suffix}",
+                f"{config['place_scheme']}",
+                config["place_netloc"],
+                f"{config['place_path']}{id}{config['place_suffix']}",
                 "",
                 "",
                 "",
             )
         )
-        web = self.backends["web"]
-        return web["interface"].get(uri)
+        return config["place_interface"].get(uri)
 
     def _web_search(self, query: str):
         """Issue the search"""
