@@ -10,13 +10,19 @@ Mixin to provide basic backend support for a gazetteer
 """
 
 
+from xml.dom.minidom import Attr
+
+
 class Backend:
     def __init__(self):
         try:
             self._backends
         except AttributeError:
             self._backends = dict()
-        self._current_backend = None
+        try:
+            self._current_backend
+        except AttributeError:
+            self._current_backend = None
 
     @property
     def backend(self):
