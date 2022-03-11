@@ -8,7 +8,7 @@
 """
 Test the apographe.linked_places_format module
 """
-from apographe.linked_places_format import Feature, Name, Properties
+from apographe.linked_places_format import Feature, Name, NameCollection, Properties
 import logging
 import pytest
 import re
@@ -114,3 +114,29 @@ class TestName:
         assert n.toponym == "bar"
         del n.toponym
         assert n.toponym is None
+
+
+class TestNameCollection:
+    def test_name_collection(self):
+        names = [Name("foo"), Name("bar")]
+        nc = NameCollection(names=names)
+        assert len(nc) == 2
+        names = nc.get_names("foo")
+        assert len(names) == 1
+        assert names[0].toponym == "foo"
+        names = nc.get_names("Foo")
+        assert len(names) == 1
+        assert names[0].toponym == "foo"
+        nc.add_name(Name("Shoo"))
+        nc.add_name(Name("Shoe"))
+        assert len(nc) == 4
+        names = nc.get_names("oo")
+        assert len(names) == 2
+        assert set([n.toponym for n in names]) == {"foo", "Shoo"}
+        for n in names:
+            nc.remove_name(n)
+        assert len(nc) == 2
+        assert set([n.toponym for n in nc.names]) == {"bar", "Shoe"}
+        names = nc.get_names("bar")
+        assert len(names) == 1
+        assert names[0].toponym == "bar"

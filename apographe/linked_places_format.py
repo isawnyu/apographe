@@ -13,9 +13,12 @@ https://github.com/LinkedPasts/linked-places-format
 from apographe.countries import ccodes_valid, country_names
 from apographe.languages_and_scripts import LanguageAware
 from apographe.text import normtext
+from copy import deepcopy
+import geojson
 import logging
 from pathlib import Path
 from pprint import pformat
+from slugify import slugify
 from uri import URI
 from uuid import uuid4
 import validators
@@ -29,10 +32,29 @@ class Name(LanguageAware):
 
         self._romanizations = set()
         self._toponym = None
+        self._name_key = None
         if toponym:
             self.toponym = toponym
         if romanizations:
             self.romanizations = romanizations
+
+    def make_key(self):
+        if self._name_key:
+            return self._name_key
+        else:
+            try:
+                value = list(self._romanizations)[0]
+            except IndexError:
+                value = self._toponym
+            return slugify(value)
+
+    @property
+    def name_strings(self):
+        strings = deepcopy(self._romanizations)
+        strings.add(self._toponym)
+        strings = list(strings)
+        strings = [s for s in strings if s]
+        return strings
 
     @property
     def romanizations(self):
@@ -65,6 +87,92 @@ class Name(LanguageAware):
     @toponym.deleter
     def toponym(self):
         self._toponym = None
+
+
+class NameCollection:
+    def __init__(self, names=[], **kwargs):
+        self._names = dict()
+        self._index = dict()
+        if names:
+            self.names = names
+
+    @property
+    def names(self):
+        return list(self._names.values())
+
+    @names.setter
+    def names(self, values):
+        for name in values:
+            self.add_name(name)
+
+    @names.deleter
+    def names(self):
+        self._names = dict()
+        self._index = dict()
+
+    def add_name(self, value):
+        if isinstance(value, Name):
+            name = value
+        elif isinstance(value, dict):
+            name = Name(**value)
+        elif isinstance(value, str):
+            name = Name(toponym=value)
+        else:
+            raise TypeError(f"Unexpected type for add_name: {type(value)}.")
+        name_key = name.make_key()
+        try:
+            self._names[name_key]
+        except KeyError:
+            self._names[name_key] = name
+        else:
+            i = len([k for k in self._names.keys() if k.startswith(name_key)])
+            name_key = f"{name_key}-{str(i)}"
+            self._names[name_key] = name
+        for ns in name.name_strings:
+            try:
+                self._index[ns]
+            except KeyError:
+                self._index[ns] = set()
+            self._index[ns].add(name_key)
+
+    def get_names(self, s: str):
+        try:
+            name_keys = self._index[s]
+        except KeyError:
+            pass
+        else:
+            return [self._names[k] for k in list(name_keys)]
+        s_low = s.lower()
+        lower_index = None
+        if s_low != s:
+            lower_index = {k.lower(): v for k, v in self._index.items()}
+            try:
+                name_keys = lower_index[s_low]
+            except KeyError:
+                pass
+            else:
+                return [self._names[k] for k in list(name_keys)]
+        if lower_index is None:
+            lower_index = {k.lower(): v for k, v in self._index.items()}
+        name_keys = set()
+        for k in [k for k in list(lower_index.keys()) if s_low in k]:
+            try:
+                name_keys.update(lower_index[k])
+            except KeyError:
+                pass
+        return [self._names[k] for k in list(name_keys)]
+
+    def remove_name(self, name: Name):
+        if not isinstance(name, Name):
+            raise TypeError(f"Unexpected name type {type(name)}.")
+        name_key = name.make_key()
+        self._names.pop(name_key)
+        index_keys = [k for k, v in self._index.items() if name_key in v]
+        for k in index_keys:
+            self._index[k].remove(name_key)
+
+    def __len__(self):
+        return len(self._names)
 
 
 class Properties:
@@ -136,6 +244,7 @@ class Feature:
             self.uri = uri
 
         self.properties = Properties(**kwargs)
+        self.names = NameCollection(**kwargs)
 
     @property
     def id(self):
