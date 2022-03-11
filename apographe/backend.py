@@ -10,9 +10,6 @@ Mixin to provide basic backend support for a gazetteer
 """
 
 
-from pprint import pprint
-
-
 class Backend:
     def __init__(self):
         try:
@@ -44,7 +41,6 @@ class Backend:
 
     def get(self, id: str):
         r = self._backends[self._current_backend]["get"](id)
-        pprint(r.json(), indent=4)
         return self.make_place(id, r.json())
 
     def _backend_supported(self, backend: str):
