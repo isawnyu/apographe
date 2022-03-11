@@ -9,6 +9,8 @@
 Classes mimicking the structure of the Linked Places Format
 https://github.com/LinkedPasts/linked-places-format
 """
+
+from apographe.countries import ccodes_valid, country_names
 from apographe.text import normtext
 import json
 import logging
@@ -20,71 +22,16 @@ import validators
 
 logger = logging.getLogger(__name__)
 
-# determine valid country codes/names and their preferred forms
-ccodes_path = Path("data/country-codes.json")
-ccodes_valid = dict()
-country_names = dict()
-with open(ccodes_path, "r", encoding="utf-8") as fp:
-    ccodes_data = json.load(fp)
-del fp
-for entry in ccodes_data:
-    for k in [
-        "CLDR display name",
-        "Geoname ID",
-        "ISO3166-1-Alpha-2",
-        "ISO3166-1-Alpha-3",
-        "ISO3166-1-numeric",
-        "MARC",
-        "official_name_ar",
-        "official_name_cn",
-        "official_name_en",
-        "official_name_es",
-        "official_name_fr",
-        "official_name_ru",
-        "UNTERM Arabic Short",
-        "UNTERM Chinese Short",
-        "UNTERM English Short",
-        "UNTERM French Short",
-        "UNTERM Russian Short",
-        "UNTERM Spanish Short",
-    ]:
-        value = None
-        preferred = None
 
-        value = entry[k]
-        if not value:
-            continue
-        if not isinstance(value, str):
-            continue
-        if "," in value:
-            logger.debug(f"skipping {k} == '{value}'")
-            continue
-        if k == "MARC" and value in {"uik"}:
-            continue
+class Name:
+    def __init__(self, toponym: str = "", lang: str = ""):
+        self._toponym = None
+        self._lang = "und"
 
-        preferred = entry["ISO3166-1-Alpha-2"]
-        if not preferred:
-            continue
-        if "," in preferred:
-            logger.debug(f"skipping ISO3166-1-Alpha-2 == '{preferred}'")
-            continue
-
-        try:
-            ccodes_valid[value]
-        except KeyError:
-            ccodes_valid[value] = preferred
-        else:
-            if ccodes_valid[value] != preferred:
-                raise RuntimeError(
-                    f"collision: '{value}' currently == {ccodes_valid[value]} failed == {preferred}"
-                )
-
-        if k == "ISO3166-1-Alpha-2":
-            name = entry["official_name_en"]
-            if name:
-                country_names[value] = name
-del ccodes_data
-del ccodes_path
+        if toponym:
+            self.toponym = toponym
+        if lang:
+            self.lang = lang
 
 
 class Properties:
