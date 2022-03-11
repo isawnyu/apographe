@@ -103,6 +103,10 @@ class TestName:
             n.script_subtag is None
         )  # sadly, this is what the IANA registry says: no default script for "grc"
 
+    def test_romanizations(self):
+        n = Name(romanizations=("foo", "phō"))
+        assert set(n.romanizations) == {"foo", "phō"}
+
     def test_toponym(self):
         n = Name(toponym="foo")
         assert n.toponym == "foo"

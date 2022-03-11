@@ -24,12 +24,33 @@ logger = logging.getLogger(__name__)
 
 
 class Name(LanguageAware):
-    def __init__(self, toponym: str = "", **kwargs):
+    def __init__(self, toponym: str = "", romanizations=[], **kwargs):
         LanguageAware.__init__(self, **kwargs)
 
+        self._romanizations = set()
         self._toponym = None
         if toponym:
             self.toponym = toponym
+        if romanizations:
+            self.romanizations = romanizations
+
+    @property
+    def romanizations(self):
+        return list(self._romanizations)
+
+    @romanizations.setter
+    def romanizations(self, values):
+        for value in values:
+            self.add_romanization(value)
+
+    @romanizations.deleter
+    def romanizations(self):
+        self._romanizations = set()
+
+    def add_romanization(self, value: str):
+        v = normtext(value)
+        if v:
+            self._romanizations.add(v)
 
     @property
     def toponym(self):
