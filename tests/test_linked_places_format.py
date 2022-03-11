@@ -52,6 +52,14 @@ class TestFeature:
         assert f.uri is None
         assert isinstance(f.internal_id, str)
 
+    def test_ids(self):
+        id = "fish001"
+        f = Feature(id=id)
+        assert f.id == id
+        id = "banana-junior-2000"
+        f.id = id
+        assert f.id == id
+
     def test_uris(self):
         uri = "https://pleiades.stoa.org/places/12345/json"
         f = Feature(uri=uri)
