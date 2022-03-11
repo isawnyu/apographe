@@ -102,3 +102,11 @@ class TestName:
         assert (
             n.script_subtag is None
         )  # sadly, this is what the IANA registry says: no default script for "grc"
+
+    def test_toponym(self):
+        n = Name(toponym="foo")
+        assert n.toponym == "foo"
+        n.toponym = "bar"
+        assert n.toponym == "bar"
+        del n.toponym
+        assert n.toponym is None

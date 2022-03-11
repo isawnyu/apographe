@@ -31,6 +31,20 @@ class Name(LanguageAware):
         if toponym:
             self.toponym = toponym
 
+    @property
+    def toponym(self):
+        return self._toponym
+
+    @toponym.setter
+    def toponym(self, value: str):
+        v = normtext(value)
+        if v:
+            self._toponym = v
+
+    @toponym.deleter
+    def toponym(self):
+        self._toponym = None
+
 
 class Properties:
     def __init__(self, title: str = "", ccodes: list = [], **kwargs):
