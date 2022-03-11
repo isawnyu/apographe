@@ -13,7 +13,7 @@ from apographe.backend import Backend
 from apographe.text import normtext
 from copy import deepcopy
 import logging
-from urllib.parse import urlunparse
+from urllib.parse import urlencode, urlunparse
 import validators
 from webiquette.webi import Webi, DEFAULT_HEADERS
 
@@ -32,6 +32,9 @@ class BackendWeb(Backend):
         place_scheme: str = DEFAULT_SCHEME,
         place_path: str = "/",
         place_suffix: str = "",
+        search_netloc: str = None,
+        search_scheme: str = DEFAULT_SCHEME,
+        search_path: str = "/",
         user_agent=DEFAULT_USER_AGENT,
         **kwargs,
     ):
@@ -41,15 +44,21 @@ class BackendWeb(Backend):
         expected_schemes = ["http", "https"]
         if place_scheme not in expected_schemes:
             raise ValueError(
-                f"Web backend expected scheme in {expected_schemes}. Got '{scheme}'."
+                f"Web backend expected place_scheme in {expected_schemes}. Got '{place_scheme}'."
             )
         else:
             web_config["place_scheme"] = place_scheme
+        if search_scheme not in expected_schemes:
+            raise ValueError(
+                f"Web backend expected search_scheme in {expected_schemes}. Got '{search_scheme}'."
+            )
+        else:
+            web_config["search_scheme"] = search_scheme
 
         # determine path components for place and search
         web_config["place_path"] = place_path
         web_config["place_suffix"] = place_suffix
-        # search TBD
+        web_config["search_path"] = search_path
 
         # determine standard HTTP headers
         place_headers = deepcopy(DEFAULT_HEADERS)
@@ -80,21 +89,50 @@ class BackendWeb(Backend):
         # determine netlocs (domains)
         if not validators.domain(place_netloc):
             raise ValueError(
-                f"Web backend expects a valid domain for netloc. Got '{place_netloc}."
+                f"Web backend expects a valid domain for place_netloc. Got '{place_netloc}."
             )
-        # search netloc TBD
         web_config["place_netloc"] = place_netloc
+        if not validators.domain(search_netloc):
+            raise ValueError(
+                f"Web backend expects a valid domain for search_netloc. Got '{search_netloc}."
+            )
+        web_config["search_netloc"] = search_netloc
 
         web_config["place_interface"] = Webi(
             netloc=place_netloc, headers=place_headers, **web_kwargs
         )
-        # search web_config TBD
+        web_config["search_interface"] = Webi(
+            netloc=search_netloc,
+            headers=place_headers,
+            **web_kwargs,  # may need to differentiate this for search
+        )
 
         web_config["get"] = self._web_get
-        # web_config["search"] = self._web_search
+        web_config["search"] = self._web_search
 
         Backend.__init__(self)
         self.configure_backend("web", web_config)
+
+    def search(self, query_uri: str):
+        return Backend.search(self, query_uri)
+
+    def _prep_params(self, **kwargs):
+        """Prepare params for web query"""
+        ready_kwargs = dict()
+        for k, v in kwargs.items():
+            if v is None:
+                ready_kwargs[k] = ""
+            elif isinstance(v, str):
+                ready_kwargs[k] = v
+            elif isinstance(v, list):
+                if k in ["getFeatureType", "Subject:list"]:
+                    ready_kwargs[k] = v
+                else:
+                    ready_kwargs[f"{k}:list"] = ",".join(v)
+            else:
+                raise TypeError(type(v))
+        params = urlencode(ready_kwargs, doseq=True)
+        return params
 
     def _web_get(self, id: str):
         """HTTP GET using caching, robots:crawl-delay, etc."""
@@ -113,4 +151,12 @@ class BackendWeb(Backend):
 
     def _web_search(self, query: str):
         """Issue the search"""
-        pass
+        config = self.backend_configuration("web")
+        try:
+            if not validators.url(query):
+                raise ValueError(f"Expected a valid search URI but got '{query}'.")
+        except TypeError:
+            raise TypeError(
+                f"Expected a query argument of type {str} but got {type(query)}."
+            )
+        return config["search_interface"].get(query)

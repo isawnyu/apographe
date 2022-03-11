@@ -43,6 +43,9 @@ class Backend:
         r = self._backends[self._current_backend]["get"](id)
         return self.make_place(id, r.json())
 
+    def search(self, query):
+        return self._backends[self._current_backend]["search"](query)
+
     def _backend_supported(self, backend: str):
         """Raise RuntimeError if named backend has not been registered"""
         try:

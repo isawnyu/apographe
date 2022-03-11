@@ -12,22 +12,8 @@ Gazetteer Inferface for the Pleiades gazetteer of ancient places
 from apographe.gazetteer import Gazetteer
 from apographe.query import Query
 from apographe.web import BackendWeb
-import logging
-
-logger = logging.getLogger(__name__)
-
-
-class Pleiades(BackendWeb, Gazetteer):
-    def __init__(self):
-        Gazetteer.__init__(self, name="Pleiades")
-        kwargs = {
-            "place_netloc": "pleiades.stoa.org",
-            "place_scheme": "https",
-            "place_path": "/places/",
-            "place_suffix": "/json",
-            "user_agent": "ApographeTester/0.0.1 (+https://github.org/isawnyu/apographe)",
-        }
-        BackendWeb.__init__(self, **kwargs)
+import feedparser
+from urllib.parse import urlunparse
 
 
 class PleiadesQuery(Query):
@@ -67,6 +53,7 @@ class PleiadesQuery(Query):
         }
 
     def _preprocess_bbox(self, bounds: tuple):
+        """Shave a small amount off the bounding box to keep Pleiades from expanding the search area."""
         shaved_bounds = list()  # pleiades is weird
         for i in [0, 1]:
             shaved_bounds.append(bounds[i] + 0.0001)
@@ -78,3 +65,54 @@ class PleiadesQuery(Query):
             "predicate": "intersection",
             "location_precision:list": "precise",
         }
+
+
+class Pleiades(BackendWeb, Gazetteer):
+    def __init__(self):
+        Gazetteer.__init__(self, name="Pleiades")
+        kwargs = {
+            "place_netloc": "pleiades.stoa.org",
+            "place_scheme": "https",
+            "place_path": "/places/",
+            "place_suffix": "/json",
+            "search_netloc": "pleiades.stoa.org",
+            "search_scheme": "https",
+            "search_path": "/search_rss",
+            "user_agent": "ApographeTester/0.0.1 (+https://github.org/isawnyu/apographe)",
+        }
+        BackendWeb.__init__(self, **kwargs)
+
+    def search(self, query: PleiadesQuery):
+        if not isinstance(query, PleiadesQuery):
+            raise TypeError(
+                f"Expected query of type {PleiadesQuery} but got {type(query)}."
+            )
+        backend = self.backend
+        return getattr(self, f"_pleiades_{backend}_search")(query)
+
+    def _pleiades_web_search(self, query: PleiadesQuery):
+        params = self._prep_params(**query.parameters_for_web)
+        config = self.backend_configuration("web")
+        query_uri = urlunparse(
+            (
+                config["search_scheme"],
+                config["search_netloc"],
+                config["search_path"],
+                "",
+                params,
+                "",
+            )
+        )
+        r = BackendWeb.search(self, query_uri)
+        hits = list()
+        data = feedparser.parse(r.text)
+        for entry in data.entries:
+            hits.append(
+                {
+                    "id": entry.link.split("/")[-1],
+                    "uri": entry.link,
+                    "title": entry.title,
+                    "summary": entry.description,
+                }
+            )
+        return {"query": query_uri, "hits": hits}

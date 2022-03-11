@@ -23,6 +23,9 @@ class TestBackendWeb:
             "place_scheme": "https",
             "place_path": "/places/",
             "place_suffix": "/json",
+            "search_netloc": "pleiades.stoa.org",
+            "search_scheme": "https",
+            "search_path": "/search_rss",
             "user_agent": "ApographeTester/0.0.1 (+https://github.org/isawnyu/apographe)",
         }
         self.wb = BackendWeb(**kwargs)
