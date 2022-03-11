@@ -11,6 +11,8 @@ Test the apographe.linked_places_format module
 from apographe.linked_places_format import Feature, Properties
 import logging
 import pytest
+import re
+from uuid import UUID
 
 
 class TestProperties:
@@ -59,6 +61,13 @@ class TestFeature:
         id = "banana-junior-2000"
         f.id = id
         assert f.id == id
+
+    def test_internal_ids(self):
+        f = Feature()
+        hex = f.internal_id
+        rx = re.compile(r"^[0-9a-f]{32}$")
+        assert rx.match(hex)
+        UUID(hex)
 
     def test_uris(self):
         uri = "https://pleiades.stoa.org/places/12345/json"
