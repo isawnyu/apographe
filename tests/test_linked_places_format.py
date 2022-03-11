@@ -80,6 +80,20 @@ class TestFeature:
         with pytest.raises(ValueError):
             f.uri = uri
 
+    def test_name_collection(self):
+        f = Feature(names=[Name("foo"), Name("bar")])
+        assert isinstance(f.names, NameCollection)
+        assert len(f.names) == 2
+        for n in f.names:
+            assert isinstance(n, Name)
+        assert set([n.toponym for n in f.names]) == {"foo", "bar"}
+        names = f.names.get_names("foo")
+        f.names.remove_name(names[0])
+        assert set([n.toponym for n in f.names]) == {"bar"}
+        names = f.names.get_names("bar")
+        f.names.remove_name(names[0])
+        assert len(f.names) == 0
+
 
 class TestName:
     def test_lang(self):

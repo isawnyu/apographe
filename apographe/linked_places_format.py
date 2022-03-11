@@ -171,6 +171,9 @@ class NameCollection:
         for k in index_keys:
             self._index[k].remove(name_key)
 
+    def __iter__(self):
+        return iter(self._names.values())
+
     def __len__(self):
         return len(self._names)
 
