@@ -16,7 +16,7 @@ import pytest
 class TestQuery:
     def test_query(self):
         q = Query()
-        q.supported_parameters == list()
-        q.parameters_for_web == dict()
+        assert q.supported_parameters == list()
+        assert q.parameters_for_web == dict()
         with pytest.raises(ValueError):
             q.set_parameter("foo", "bar")
