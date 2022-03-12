@@ -13,6 +13,7 @@ from apographe.gazetteer import Gazetteer
 from apographe.place import Place
 from apographe.query import Query
 from apographe.web import BackendWeb
+from copy import deepcopy
 import feedparser
 import logging
 from pprint import pformat
@@ -110,7 +111,13 @@ class Pleiades(BackendWeb, Gazetteer):
         for k in copy_keys:
             kwargs[k] = data[k]
         kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]
+        kwargs["geometries"] = [
+            self._kwargs_from_json_geometry(l["geometry"]) for l in data["locations"]
+        ]
         return kwargs
+
+    def _kwargs_from_json_geometry(self, geometry):
+        return deepcopy(geometry)
 
     def _kwargs_from_json_name(self, name):
         name_kwargs = dict()
@@ -126,6 +133,8 @@ class Pleiades(BackendWeb, Gazetteer):
                     name_kwargs[dest] = name[src]
                 elif action == "split-comma":
                     name_kwargs[dest] = name[src].split(",")
+                else:
+                    raise NotImplementedError(action)
         return name_kwargs
 
     def _pleiades_web_search(self, query: PleiadesQuery):

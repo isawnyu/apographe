@@ -11,7 +11,10 @@ Test the apographe.pleiades module
 
 from apographe.pleiades import Pleiades, PleiadesQuery
 from apographe.web import BackendWeb
+import geojson
+import logging
 import pytest
+from shapely.geometry import Point
 
 
 class TestPleiades:
@@ -47,6 +50,10 @@ class TestPleiadesWeb:
         assert n.toponym == "Ζουχάββαρι"
         assert n.language_tag == "grc"
         assert set(n.romanizations) == {"Zouchabbari", "Zouchábbari"}
+        assert isinstance(place.geometry, geojson.GeometryCollection)
+        assert len(place.geometry) == 2
+        for geo in place.geometry.geometries:
+            assert isinstance(geo, Point)
 
     def test_search_bounding_box(self):
         q = PleiadesQuery()

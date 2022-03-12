@@ -32,6 +32,7 @@ setuptools.setup(
         "geojson",
         "language-tags",
         "markupsafe",
+        "Shapely",
         "python-slugify",
         "uri @ git+https://github.com/marrow/uri.git@5b58db87451ca4680004a8993a56bfc4dafff4d4",
         "validators",

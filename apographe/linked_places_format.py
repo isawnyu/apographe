@@ -18,6 +18,8 @@ import geojson
 import logging
 from pathlib import Path
 from pprint import pformat
+from shapely.geometry import mapping as shapely_mapping
+from shapely.geometry import shape as shapely_shape
 from slugify import slugify
 from uri import URI
 from uuid import uuid4
@@ -257,6 +259,16 @@ class Feature:
 
         self.properties = Properties(**kwargs)
         self.names = NameCollection(**kwargs)
+        try:
+            geometries = kwargs["geometries"]
+        except KeyError:
+            self.geometry = []
+        else:
+            if len(geometries) == 1:
+                self.geometry = shapely_shape(geometries[0])
+            elif len(geometries) > 1:
+                geo_collection = [shapely_shape(g) for g in geometries]
+                self.geometry = geojson.GeometryCollection(geo_collection)
 
     @property
     def id(self):
