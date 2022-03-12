@@ -4,4 +4,64 @@
 
 - [x] add search functionality to pleiades web backend
 - [ ] add basic filesystem backend, and then implement pleiades filesystem backend
-- [ ] elaborate Place data model mimicking Linked Places Format
+- [ ] elaborate Place data model mimicking Linked Places Format (mark done when full conformance)
+    - [x] id (uri)
+    - [x] properties (dict)
+        - [x] title (str)
+        - [x] *ccodes (list)
+    - [ ] ?when (dict)
+        - [ ] timespans (list)
+            - [ ] +(timespan: dict)
+                - [ ] start
+                    - [ ] ?in
+                    - [ ] ?earliest
+                    - [ ] ?latest
+                - [ ] ?end
+                    - [ ] as for "start", above
+        - [ ] ?periods (list)
+            - [ ] (period: dict)
+                - [ ] name (str)
+                - [ ] uri (uri)
+        - [ ] ?duration (str)
+    - [x] names (list)
+        - [x] +(name: dict)  # deviation? Pleiades has unnamed places
+            - [x] toponym (str)
+            - [x] language_code "lang" (str)
+            - [ ] citations (dict)
+            - [ ] *when: see further above
+    - [ ] ?types (list)
+        - [ ] (type: dict)
+            - [ ] identifier (str)
+            - [ ] label (str)
+            - [ ] ?sourceLabels (list)
+                - [ ] (source label: dict)
+                    - [ ] label (str)
+                    - [ ] language code "lang" (str)
+            - [ ] ?when
+    - [x] geometry (dict): one of geojson.GeometryCollection, Point, etc. or null if no geometry
+        - individual geometries can also have (in addition to geojson spec):
+            - [ ] ?when
+            - [ ] ?certainty (str: certain, less-certain, uncertain)
+    - [ ] ?links (list)
+        - [ ] (link: dict)
+            - [ ] type (str)
+            - [ ] identifier (uri)
+    - [ ] ?relations (list)
+        - [ ] (relation: dict)
+            - [ ] relationType (uri)
+            - [ ] relationTo (uri)
+            - [ ] label (str)
+            - [ ] ?when: see further above
+            - [ ] citations: see further above
+            - [ ] certainty (str)
+    - [ ] ?descriptions (list)
+        - [ ] (description: dict)
+            - [ ] id (uri)
+            - [ ] value (str)
+            - [ ] language_code "lang" (str)
+    - [ ] ?depictions (list)
+        - [ ] (depiction: dict)
+            - [ ] id (uri)
+            - [ ] title (str)
+            - [ ] license (uri)
+- [ ] extend Place data model to provide lossless recording of Pleiades data
