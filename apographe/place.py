@@ -8,18 +8,10 @@
 """
 Define Place class
 """
+from apographe.linked_places_format import Feature
 
 
-class Place:
-    def __init__(self, id: str, raw=None):
-        self.id = id
+class Place(Feature):
+    def __init__(self, raw=None, **kwargs):
         self.raw = raw
-        if isinstance(raw, dict):
-            fields = {"title": "title"}
-            for key, attrname in fields.items():
-                try:
-                    v = raw[key]
-                except KeyError:
-                    continue
-                else:
-                    setattr(self, attrname, v)
+        Feature.__init__(self, **kwargs)

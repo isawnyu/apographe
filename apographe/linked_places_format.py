@@ -91,10 +91,19 @@ class Name(LanguageAware):
 
 class NameCollection:
     def __init__(self, names=[], **kwargs):
+        logger = logging.getLogger(self.__class__.__name__)
+        logger.debug(pformat(names, indent=4))
         self._names = dict()
         self._index = dict()
         if names:
             self.names = names
+
+    @property
+    def name_strings(self):
+        strings = set()
+        for n in self.names:
+            strings.update(n.name_strings)
+        return list(strings)
 
     @property
     def names(self):

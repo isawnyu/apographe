@@ -10,9 +10,12 @@ Gazetteer Inferface for the Pleiades gazetteer of ancient places
 """
 
 from apographe.gazetteer import Gazetteer
+from apographe.place import Place
 from apographe.query import Query
 from apographe.web import BackendWeb
 import feedparser
+import logging
+from pprint import pformat
 from urllib.parse import urlunparse
 
 
@@ -82,6 +85,11 @@ class Pleiades(BackendWeb, Gazetteer):
         }
         BackendWeb.__init__(self, **kwargs)
 
+    def get(self, id: str):
+        backend = self.backend
+        place = getattr(self, f"_pleiades_{backend}_get")(id)
+        return place
+
     def search(self, query: PleiadesQuery):
         if not isinstance(query, PleiadesQuery):
             raise TypeError(
@@ -89,6 +97,28 @@ class Pleiades(BackendWeb, Gazetteer):
             )
         backend = self.backend
         return getattr(self, f"_pleiades_{backend}_search")(query)
+
+    def _pleiades_web_get(self, id: str):
+        data = BackendWeb.get(self, id).json()
+        kwargs = self._kwargs_from_json(data)
+        place = Place(id=id, raw=data, **kwargs)
+        return place
+
+    def _kwargs_from_json(self, data):
+        kwargs = dict()
+        copy_keys = ["title"]
+        for k in copy_keys:
+            kwargs[k] = data[k]
+        kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]
+        return kwargs
+
+    def _kwargs_from_json_name(self, name):
+        name_kwargs = dict()
+        if name["attested"]:
+            name_kwargs["toponym"] = name["attested"]
+        if name["romanized"]:
+            name_kwargs["romanizations"] = name["romanized"].split(",")
+        return name_kwargs
 
     def _pleiades_web_search(self, query: PleiadesQuery):
         params = self._prep_params(**query.parameters_for_web)

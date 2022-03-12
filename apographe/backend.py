@@ -41,7 +41,7 @@ class Backend:
 
     def get(self, id: str):
         r = self._backends[self._current_backend]["get"](id)
-        return self.make_place(id, r.json())
+        return r
 
     def search(self, query):
         return self._backends[self._current_backend]["search"](query)

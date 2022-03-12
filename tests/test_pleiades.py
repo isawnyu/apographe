@@ -33,6 +33,14 @@ class TestPleiadesWeb:
         self.p.backend = "web"
         place = self.p.get("295374")
         assert place.raw["title"] == "Zucchabar"
+        assert place.id == "295374"
+        assert place.properties.title == "Zucchabar"
+        assert set(place.names.name_strings) == {
+            "Zouchabbari",
+            "Zouchábbari",
+            "Ζουχάββαρι",
+            "Zucchabar",
+        }
 
     def test_search_bounding_box(self):
         q = PleiadesQuery()
