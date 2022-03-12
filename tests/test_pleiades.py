@@ -41,6 +41,12 @@ class TestPleiadesWeb:
             "Ζουχάββαρι",
             "Zucchabar",
         }
+        names = place.names.get_names("Ζουχάββαρι")
+        assert len(names) == 1
+        n = names[0]
+        assert n.toponym == "Ζουχάββαρι"
+        assert n.lang == "grc"
+        assert set(n.romanizations) == {"Zouchabbari", "Zouchábbari"}
 
     def test_search_bounding_box(self):
         q = PleiadesQuery()

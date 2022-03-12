@@ -114,10 +114,18 @@ class Pleiades(BackendWeb, Gazetteer):
 
     def _kwargs_from_json_name(self, name):
         name_kwargs = dict()
-        if name["attested"]:
-            name_kwargs["toponym"] = name["attested"]
-        if name["romanized"]:
-            name_kwargs["romanizations"] = name["romanized"].split(",")
+        crosswalk = {
+            "attested": ("toponym", "copy"),
+            "romanized": ("romanizations", "split-comma"),
+            "language": ("lang", "copy"),
+        }
+        for src, rule in crosswalk.items():
+            if name[src]:
+                dest, action = rule
+                if action == "copy":
+                    name_kwargs[dest] = name[src]
+                elif action == "split-comma":
+                    name_kwargs[dest] = name[src].split(",")
         return name_kwargs
 
     def _pleiades_web_search(self, query: PleiadesQuery):
