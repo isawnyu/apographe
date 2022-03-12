@@ -27,14 +27,14 @@ class LanguageAware:
                 pass
 
     @property
-    def lang(self):
+    def language_tag(self):
         if self._language_tag:
             return self._language_tag.format
         else:
             return "und"
 
-    @lang.setter
-    def lang(self, value: str):
+    @language_tag.setter
+    def language_tag(self, value: str):
         tag = tags.tag(value)
         if tag.valid:
             self._language_tag = tag

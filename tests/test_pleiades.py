@@ -45,7 +45,7 @@ class TestPleiadesWeb:
         assert len(names) == 1
         n = names[0]
         assert n.toponym == "Ζουχάββαρι"
-        assert n.lang == "grc"
+        assert n.language_tag == "grc"
         assert set(n.romanizations) == {"Zouchabbari", "Zouchábbari"}
 
     def test_search_bounding_box(self):

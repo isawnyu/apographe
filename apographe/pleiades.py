@@ -117,7 +117,7 @@ class Pleiades(BackendWeb, Gazetteer):
         crosswalk = {
             "attested": ("toponym", "copy"),
             "romanized": ("romanizations", "split-comma"),
-            "language": ("lang", "copy"),
+            "language": ("language_tag", "copy"),
         }
         for src, rule in crosswalk.items():
             if name[src]:
