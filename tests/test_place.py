@@ -58,18 +58,14 @@ class TestPlace:
         jstring = json.dumps(p, cls=ApographeEncoder, indent=4, ensure_ascii=False)
         d = json.loads(jstring)
         assert set(d.keys()) == {
-            "raw",
             "id_internal",
             "id",
-            "uri",
             "properties",
             "names",
             "geometry",
         }
-        assert d["raw"] is None
         assert isinstance(d["id_internal"], str)
         assert d["id"] == "zucchabar"
-        assert d["uri"] is None
 
         assert d["properties"]["title"] == "Zucchabar"
         assert d["properties"]["ccodes"] == ["DZ"]
@@ -97,18 +93,14 @@ class TestPlace:
         assert len(features) == 1
         f = features[0]
         assert set(f.keys()) == {
-            "raw",
             "id_internal",
             "id",
-            "uri",
             "properties",
             "names",
             "geometry",
         }
-        assert f["raw"] is None
         assert isinstance(f["id_internal"], str)
         assert f["id"] == "zucchabar"
-        assert f["uri"] is None
 
         assert f["properties"]["title"] == "Zucchabar"
         assert f["properties"]["ccodes"] == ["DZ"]
