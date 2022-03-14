@@ -19,13 +19,14 @@ import pytest
 from shapely.geometry import GeometryCollection, Point
 from shapely.geometry import shape as shapely_shape
 
+gaz = Pleiades()
+
 
 class TestPleiades:
-    p = Pleiades()
-
     def test_init(self):
         # Pleiades should have a web backend
-        self.p.backend = "web"
+        global gaz
+        gaz.backend = "web"
 
 
 class TestPleiadesWeb:
@@ -33,11 +34,10 @@ class TestPleiadesWeb:
     Test Pleiades functionality using the web backend.
     """
 
-    p = Pleiades()
-
     def test_get_web(self):
-        self.p.backend = "web"
-        place = self.p.get("295374")
+        global gaz
+        gaz.backend = "web"
+        place = gaz.get("295374")
         assert place.raw["title"] == "Zucchabar"
         assert place.id == "295374"
         assert place.properties.title == "Zucchabar"
@@ -59,10 +59,12 @@ class TestPleiadesWeb:
             assert isinstance(geo, Point)
 
     def test_search_bounding_box(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         bounds = (2.0, 36.0, 2.5, 36.5)
         q.set_parameter("bbox", bounds)
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 8
         ids = {hit["id"] for hit in results["hits"]}
         expected = {
@@ -78,51 +80,67 @@ class TestPleiadesWeb:
         assert ids == expected
 
     def test_search_description(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("description", "Punic")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) >= 74
 
     def test_search_description_or(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("description", ["contested", "conflict"], "OR")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) >= 10
 
     def test_search_description_and(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("description", ["contested", "conflict"], "AND")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 1
 
     def test_search_feature_type_or(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("feature_type", ["acropolis", "agora"], "OR")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 25
 
     def test_search_tag(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("tag", "Ammon")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 1
 
     def test_search_tag_or(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("tag", ["Ammon", "Amun"], "OR")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 2
 
     def test_search_tag_and(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("tag", ["Magna Mater", "Mithras"], "AND")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 1
 
     def test_search_title(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("title", "Zucchabar")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 1
         hit = results["hits"][0]
         assert hit["id"] == "295374"
@@ -133,43 +151,53 @@ class TestPleiadesWeb:
         )
 
     def test_search_text_simple(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("text", "Miliana")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 4
         for hit in results["hits"]:
             assert hit["id"] in ["315048", "295374", "295304", "315104"]
 
     def test_search_text_or(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("text", ["Zucchabar", "Luxmanda"], "OR")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 2
         for hit in results["hits"]:
             assert hit["id"] in ["295374", "896643025"]
 
     def test_search_text_and(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("text", ["Zucchabar", "Miliana"], "AND")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 1
         assert results["hits"][0]["id"] == "295374"
 
     def test_search_combo_1(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("tag", ["Cybele", "Kybele", "Magna Mater"], "OR")
         q.set_parameter("feature_type", ["sanctuary", "temple-2"], "OR")
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 5
         expected = {"778145953", "550437", "87367170", "114722047", "109133"}
         ids = {hit["id"] for hit in results["hits"]}
         assert expected == ids
 
     def test_search_combo_2(self):
+        global gaz
+        gaz.backend = "web"
         q = PleiadesQuery()
         q.set_parameter("feature_type", ["sanctuary", "temple-2"], "OR")
         q.set_parameter("bbox", (27.5, 35.75, 28.3, 36.5))  # Rhodes and environs
-        results = self.p.search(q)
+        results = gaz.search(q)
         assert len(results["hits"]) == 4
         expected = {"589700", "590099", "630398334", "414067217"}
         ids = {hit["id"] for hit in results["hits"]}
@@ -230,11 +258,10 @@ class TestPleiadesQueries:
 
 
 class TestPleiadesSerialization:
-    p = Pleiades()
-
     def test_json(self):
-        self.p.backend = "web"
-        place = self.p.get("295374")
+        global gaz
+        gaz.backend = "web"
+        place = gaz.get("295374")
         s = json.dumps(place, cls=ApographeEncoder, ensure_ascii=False)
         d = json.loads(s)
         assert set(d.keys()) == {
