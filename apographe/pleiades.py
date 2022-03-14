@@ -107,7 +107,7 @@ class Pleiades(BackendWeb, Gazetteer):
 
     def _kwargs_from_json(self, data):
         kwargs = dict()
-        copy_keys = ["title"]
+        copy_keys = ["title", "uri"]
         for k in copy_keys:
             kwargs[k] = data[k]
         kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]

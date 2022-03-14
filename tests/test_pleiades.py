@@ -10,11 +10,14 @@ Test the apographe.pleiades module
 """
 
 from apographe.pleiades import Pleiades, PleiadesQuery
+from apographe.serialization import ApographeEncoder
 from apographe.web import BackendWeb
 import geojson
+import json
 import logging
 import pytest
-from shapely.geometry import Point
+from shapely.geometry import GeometryCollection, Point
+from shapely.geometry import shape as shapely_shape
 
 
 class TestPleiades:
@@ -224,3 +227,48 @@ class TestPleiadesQueries:
             "Subject:list": [("Ammon", "Amun"), "OR"],
             "upperRight": "2.4999,36.4999",  # shaved
         }
+
+
+class TestPleiadesSerialization:
+    p = Pleiades()
+
+    def test_json(self):
+        self.p.backend = "web"
+        place = self.p.get("295374")
+        s = json.dumps(place, cls=ApographeEncoder, ensure_ascii=False)
+        d = json.loads(s)
+        assert set(d.keys()) == {
+            "raw",
+            "id_internal",
+            "id",
+            "uri",
+            "properties",
+            "names",
+            "geometry",
+        }
+        assert isinstance(d["raw"], dict)
+        assert isinstance(d["id_internal"], str)
+        assert d["id"] == "295374"
+        assert d["uri"] == "https://pleiades.stoa.org/places/295374"
+
+        assert d["properties"]["title"] == "Zucchabar"
+        assert d["properties"]["ccodes"] == []  # Pleiades doesn't do country codes
+
+        assert len(d["names"]) == 2
+        for name in d["names"]:
+            if name["toponym"] == "Zucchabar":
+                assert len(name) == 3
+            elif name["toponym"] == "Ζουχάββαρι":
+                assert len(name) == 3
+                assert (
+                    name["language_tag"] == "grc"
+                )  # pleiades assumes grc == grc-Grek even though IANA doesn't
+                assert set(name["romanizations"]) == {"Zouchábbari", "Zouchabbari"}
+        assert isinstance(d["geometry"], dict)
+        shape = shapely_shape(d["geometry"])
+        assert isinstance(shape, GeometryCollection)
+        geometries = d["geometry"]["geometries"]
+        assert len(geometries) == 2
+        for geometry in geometries:
+            shape = shapely_shape(geometry)
+            assert isinstance(shape, Point)

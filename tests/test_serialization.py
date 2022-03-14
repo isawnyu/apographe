@@ -17,6 +17,7 @@ import json
 class Mock(Serialization):
     def __init__(self):
         self.foo = "bar"
+        Serialization.__init__(self)
 
 
 class TestSerialization:
