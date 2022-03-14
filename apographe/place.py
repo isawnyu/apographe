@@ -17,3 +17,5 @@ class Place(Feature, Serialization):
         Serialization.__init__(self)
         self.raw = raw
         Feature.__init__(self, **kwargs)
+
+    

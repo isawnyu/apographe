@@ -9,6 +9,7 @@
 Test the apographe.place module
 """
 
+from apographe.linked_places_format import dumps as lpfdumps
 from apographe.place import Place
 from apographe.serialization import ApographeEncoder
 import json
@@ -82,5 +83,44 @@ class TestPlace:
 
         assert isinstance(d["geometry"], dict)
         shape = shapely_shape(d["geometry"])
+        assert isinstance(shape, Point)
+        assert [shape.x, shape.y] == [2.2237580000000001, 36.304938999999997]
+
+        s = lpfdumps(p)
+        d = json.loads(s)  # sic
+        assert set(d.keys()) == {
+            "type",
+            "@context",
+            "features",
+        }
+        features = d["features"]
+        assert len(features) == 1
+        f = features[0]
+        assert set(f.keys()) == {
+            "raw",
+            "id_internal",
+            "id",
+            "uri",
+            "properties",
+            "names",
+            "geometry",
+        }
+        assert f["raw"] is None
+        assert isinstance(f["id_internal"], str)
+        assert f["id"] == "zucchabar"
+        assert f["uri"] is None
+
+        assert f["properties"]["title"] == "Zucchabar"
+        assert f["properties"]["ccodes"] == ["DZ"]
+
+        assert len(f["names"]) == 1
+        name = f["names"][0]
+        assert len(name) == 3
+        assert name["language_tag"] == "grc-Grek"
+        assert name["toponym"] == "Ζουχάββαρι"
+        assert set(name["romanizations"]) == {"Zouchábbari", "Zouchabbari"}
+
+        assert isinstance(f["geometry"], dict)
+        shape = shapely_shape(f["geometry"])
         assert isinstance(shape, Point)
         assert [shape.x, shape.y] == [2.2237580000000001, 36.304938999999997]

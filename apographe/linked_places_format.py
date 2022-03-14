@@ -12,10 +12,11 @@ https://github.com/LinkedPasts/linked-places-format
 
 from apographe.countries import ccodes_valid, country_names
 from apographe.languages_and_scripts import LanguageAware
-from apographe.serialization import Serialization
+from apographe.serialization import Serialization, ApographeEncoder
 from apographe.text import normtext
 from copy import deepcopy
 import geojson
+import json
 import logging
 from pathlib import Path
 from pprint import pformat
@@ -27,6 +28,37 @@ from uuid import uuid4
 import validators
 
 logger = logging.getLogger(__name__)
+
+
+def dump(obj, fp, ensure_ascii=True, indent=None, sort_keys=False):
+    """Serialize obj to Linked Places Format GeoJSON and save to fp."""
+    if not isinstance(obj, Serialization):
+        raise TypeError(type(obj))
+    fp.write(dumps(obj, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys))
+
+
+def dumps(obj, ensure_ascii=True, indent=None, sort_keys=False):
+    """Serialize obj to Linked Places Format GeoJSON and return as string."""
+    if not isinstance(obj, Serialization):
+        raise TypeError(type(obj))
+    dumpd = {
+        "@context": "https://raw.githubusercontent.com/LinkedPasts/linked-places/master/linkedplaces-context-v1.1.jsonld",
+        "type": "FeatureCollection",
+        "features": [],
+    }
+    if isinstance(obj, (list)):
+        dumpd["features"].extend(obj)
+    elif isinstance(obj, (tuple)):
+        dumpd["features"].extend(list(obj))
+    else:
+        dumpd["features"].append(obj)
+    return json.dumps(
+        obj=dumpd,
+        ensure_ascii=False,
+        cls=ApographeEncoder,
+        indent=indent,
+        sort_keys=sort_keys,
+    )
 
 
 class Name(LanguageAware, Serialization):
