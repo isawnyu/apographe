@@ -65,3 +65,10 @@
             - [ ] title (str)
             - [ ] license (uri)
 - [ ] extend Place data model to provide lossless recording of Pleiades data
+- [ ] save a Place to LPF JSON
+- [ ] create, save, load, export a place collection
+    - [ ] create entries by accessioning from search
+    - [ ] save (jsonpickle)
+    - [ ] load (jsonpickle)
+    - [ ] export
+        - [ ] LPF GEOJSON
