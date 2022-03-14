@@ -27,7 +27,7 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    package_data={"data": ["*.json"]},
+    include_package_data=True,
     install_requires=[
         "feedparser",
         "geojson",
