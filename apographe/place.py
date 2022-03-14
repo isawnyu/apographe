@@ -14,8 +14,6 @@ from apographe.serialization import Serialization
 
 class Place(Feature, Serialization):
     def __init__(self, raw=None, **kwargs):
-        Serialization.__init__(self)
+        Serialization.__init__(self, omit="raw")
         self.raw = raw
         Feature.__init__(self, **kwargs)
-
-    
