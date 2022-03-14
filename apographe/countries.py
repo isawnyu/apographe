@@ -12,12 +12,14 @@ Define and manage country-related metadata
 import json
 import logging
 from pathlib import Path
+import pkg_resources
 
 logger = logging.getLogger(__name__)
 
 
 # determine valid country codes/names and their preferred forms
-ccodes_path = Path("data/country-codes.json")
+# ccodes_path = Path("data/country-codes.json")
+ccodes_path = Path(pkg_resources.resource_filename("data", "country-codes.json"))
 ccodes_valid = dict()
 country_names = dict()
 with open(ccodes_path, "r", encoding="utf-8") as fp:
