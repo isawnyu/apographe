@@ -44,7 +44,9 @@ class Serialization:
                 val = attrval
             else:
                 val = varval
-            d[attrname] = self._asdict_process(val)
+            cooked = self._asdict_process(val)
+            if cooked:
+                d[attrname] = cooked
         if self._promote and len(d) == 1:
             d = d[list(d.keys())[0]]
         elif self._promote:
