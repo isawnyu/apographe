@@ -7,14 +7,21 @@
 
 Assumes an activated python 3.10.2 virtual environment. 
 
+```
+pip install -U git+https://github.com/isawnyu/apographe.git
+```
 
+Then you can do stuff like:
 
 ```python
 Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] on darwin
 >>> from apographe.pleiades import Pleiades
 >>> p = Pleiades()
->>> p.backend = "web"
+>>> p.backend = "web"  # search and fetch pleiades places json over the web
 >>> place = p.get("295374")
+
+# data is structured after the Linked Places Format
+# https://github.com/LinkedPasts/linked-places-format
 >>> place.id
 '295374'
 >>> place.uri
@@ -25,6 +32,9 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
 {'title': 'Zucchabar'}
 >>> place.geometry
 {"geometries": [{"coordinates": [2.223758, 36.304939], "type": "Point"}, {"coordinates": [2.22619, 36.304782], "type": "Point"}], "type": "GeometryCollection"}
+
+# the raw data as formatted by Pleiades is available
+
 >>> from apographe.linked_places_format import dumps
 >>> print(dumps(place, indent=4))
 {
