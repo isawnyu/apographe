@@ -9,9 +9,11 @@
 Define Place class
 """
 from apographe.linked_places_format import Feature
+from apographe.serialization import Serialization
 
 
-class Place(Feature):
+class Place(Feature, Serialization):
     def __init__(self, raw=None, **kwargs):
+        Serialization.__init__(self)
         self.raw = raw
         Feature.__init__(self, **kwargs)

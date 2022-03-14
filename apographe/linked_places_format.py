@@ -12,6 +12,7 @@ https://github.com/LinkedPasts/linked-places-format
 
 from apographe.countries import ccodes_valid, country_names
 from apographe.languages_and_scripts import LanguageAware
+from apographe.serialization import Serialization
 from apographe.text import normtext
 from copy import deepcopy
 import geojson
@@ -28,9 +29,13 @@ import validators
 logger = logging.getLogger(__name__)
 
 
-class Name(LanguageAware):
+class Name(LanguageAware, Serialization):
     def __init__(self, toponym: str = "", romanizations=[], **kwargs):
         LanguageAware.__init__(self, **kwargs)
+        Serialization.__init__(
+            self,
+            omit=["_name_key", "_language_subtag", "_script_subtag", "_region_subtag"],
+        )
 
         self._romanizations = set()
         self._toponym = None
@@ -91,8 +96,9 @@ class Name(LanguageAware):
         self._toponym = None
 
 
-class NameCollection:
+class NameCollection(Serialization):
     def __init__(self, names=[], **kwargs):
+        Serialization.__init__(self, omit=["_index"], promote="names", refactor=list)
         logger = logging.getLogger(self.__class__.__name__)
         logger.debug(pformat(names, indent=4))
         self._names = dict()
@@ -189,8 +195,9 @@ class NameCollection:
         return len(self._names)
 
 
-class Properties:
+class Properties(Serialization):
     def __init__(self, title: str = "", ccodes: list = [], **kwargs):
+        Serialization.__init__(self)
         self._title = ""
         self._ccodes = set()
 
@@ -262,7 +269,12 @@ class Feature:
         try:
             geometries = kwargs["geometries"]
         except KeyError:
-            self.geometry = []
+            try:
+                geometry = kwargs["geometry"]
+            except KeyError:
+                self.geometry = list()
+            else:
+                self.geometry = shapely_shape(geometry)
         else:
             if len(geometries) == 1:
                 self.geometry = shapely_shape(geometries[0])

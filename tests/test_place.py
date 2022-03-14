@@ -10,7 +10,12 @@ Test the apographe.place module
 """
 
 from apographe.place import Place
+from apographe.serialization import ApographeEncoder
+import json
+import logging
+from pprint import pformat
 from shapely.geometry import Point
+from shapely.geometry import shape as shapely_shape
 
 
 class TestPlace:
@@ -47,5 +52,35 @@ class TestPlace:
         assert n.language_subtag == "grc"
         assert n.script_subtag == "Grek"
         assert n.region_subtag is None
-        assert isinstance(p.geometry, list)
-        
+        assert isinstance(p.geometry, Point)
+
+        jstring = json.dumps(p, cls=ApographeEncoder, indent=4, ensure_ascii=False)
+        d = json.loads(jstring)
+        assert set(d.keys()) == {
+            "raw",
+            "id_internal",
+            "id",
+            "uri",
+            "properties",
+            "names",
+            "geometry",
+        }
+        assert d["raw"] is None
+        assert isinstance(d["id_internal"], str)
+        assert d["id"] == "zucchabar"
+        assert d["uri"] is None
+
+        assert d["properties"]["title"] == "Zucchabar"
+        assert d["properties"]["ccodes"] == ["DZ"]
+
+        assert len(d["names"]) == 1
+        name = d["names"][0]
+        assert len(name) == 3
+        assert name["language_tag"] == "grc-Grek"
+        assert name["toponym"] == "Ζουχάββαρι"
+        assert set(name["romanizations"]) == {"Zouchábbari", "Zouchabbari"}
+
+        assert isinstance(d["geometry"], dict)
+        shape = shapely_shape(d["geometry"])
+        assert isinstance(shape, Point)
+        assert [shape.x, shape.y] == [2.2237580000000001, 36.304938999999997]
