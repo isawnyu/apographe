@@ -9,11 +9,13 @@
 Epigraphic Database Heidelberg Geography interface
 """
 
+from apographe.countries import ccodes_valid
 from apographe.gazetteer import Gazetteer
 from apographe.place import Place
 from apographe.query import Query
 from apographe.text import normtext
 from apographe.web import BackendWeb
+from copy import deepcopy
 from urllib.parse import urlunparse
 
 
@@ -40,15 +42,52 @@ class EDHQuery(Query):
             "description": {
                 "expected": (str, list),
                 "list_behavior": "join",
-                "rename": "commentary",
+                "behavior": self._preprocess_description,
             },
             "text": {
                 "expected": (str, list),
+                "list_behavior": "join",
                 "behavior": self._preprocess_text,
             },
-            "title": {"expected": str, "behavior": self._preprocess_title},
+            "title": {
+                "expected": str,
+                "list_behavior": "join",
+                "behavior": self._preprocess_title,
+            },
         }
-        self._default_web_parameters = {"limit": "100"}
+        self._default_web_parameters = {
+            "anzahl": "100",
+            "sort": "Geo-ID",
+            "bearbeitet_abgeschlossen": "y",
+            "bearbeitet_provisorisch": "y",
+        }
+
+    def _preprocess_description(self, description):
+        q = {"region": description}
+        try:
+            cc = ccodes_valid[description]
+        except KeyError:
+            pass
+        else:
+            q["country"] = cc
+            q["iterate"] = ["region", "country"]
+        return q
+
+    def _preprocess_text(self, text):
+        keys = ["fo_antik", "fo_modern", "fundstelle", "region", "kommentar"]
+        q = dict()
+        for k in keys:
+            q[k] = text
+        q["iterate"] = keys
+        return q
+
+    def _preprocess_title(self, title):
+        keys = ["fo_antik", "fo_modern", "fundstelle"]
+        q = dict()
+        for k in keys:
+            q[k] = title
+        q["iterate"] = keys
+        return q
 
 
 class EDH(BackendWeb, Gazetteer):
@@ -89,7 +128,57 @@ class EDH(BackendWeb, Gazetteer):
         return place
 
     def _edh_web_search(self, query: EDHQuery):
-        pass
+        hits = list()
+        queries = list()
+        param_groups = list()
+        try:
+            iterate_keys = query.parameters_for_web["iterate"]
+        except KeyError:
+            param_groups.append(self._prep_params(**query.parameters_for_web))
+        else:
+            for ik in iterate_keys:
+                params_raw = deepcopy(query.parameters_for_web)
+                keys_to_remove = deepcopy(iterate_keys)
+                keys_to_remove.remove(ik)
+                keys_to_remove.append("iterate")
+                for rk in keys_to_remove:
+                    params_raw.pop(rk)
+                param_groups.append(self._prep_params(**params_raw))
+        config = self.backend_configuration("web")
+        for params in param_groups:
+            query_uri = urlunparse(
+                (
+                    config["search_scheme"],
+                    config["search_netloc"],
+                    config["search_path"],
+                    "",
+                    params,
+                    "",
+                )
+            )
+            import logging
+
+            logger = logging.getLogger(self.__class__.__name__)
+            logger.debug(query_uri)
+            r = BackendWeb.search(self, query_uri)
+            data = r.json()
+            for entry in data["items"]:
+                hits.append(
+                    {
+                        "id": entry["id"],
+                        "uri": f"https://edh.ub.uni-heidelberg.de/edh/geographie/{entry['id']}",
+                        "title": self._kwargs_title(entry),
+                        "summary": f"{entry['region']}, {entry['country']}",
+                    }
+                )
+            queries.append(query_uri)
+        unique_ids = set()
+        unique_hits = list()
+        for hit in hits:
+            if hit["id"] not in unique_ids:
+                unique_hits.append(hit)
+                unique_ids.add(hit["id"])
+        return {"query": queries, "hits": unique_hits}
 
     def _kwargs_from_json(self, data):
         kwargs = dict()
