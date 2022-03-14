@@ -32,9 +32,6 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
 {'title': 'Zucchabar'}
 >>> place.geometry
 {"geometries": [{"coordinates": [2.223758, 36.304939], "type": "Point"}, {"coordinates": [2.22619, 36.304782], "type": "Point"}], "type": "GeometryCollection"}
-
-# the raw data as formatted by Pleiades is available
-
 >>> from apographe.linked_places_format import dumps
 >>> print(dumps(place, indent=4))
 {
@@ -85,6 +82,54 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
         }
     ]
 }
+
+# the raw data as structured and provided by Pleiades is available
+
+>>> from pprint import pformat
+>>> raw = pformat(place.raw, indent=4)
+>>> print("\n".join(raw.split("\n")[:40]))
+{   '@context': {   'created': 'dcterms:created',
+                    'dcterms': 'http://purl.org/dc/terms/',
+                    'description': 'dcterms:description',
+                    'rights': 'dcterms:rights',
+                    'snippet': 'dcterms:abstract',
+                    'subject': 'dcterms:subject',
+                    'title': 'dcterms:title',
+                    'uri': '@id'},
+    '@type': 'Place',
+    'bbox': [2.223758, 36.304782, 2.22619, 36.304939],
+    'connections': [   {   '@type': 'Connection',
+                           'associationCertainty': 'certain',
+                           'attestations': [],
+                           'connectionType': 'connection',
+                           'connectionTypeURI': 'https://pleiades.stoa.org/vocabularies/relationship-types/connection',
+                           'connectsTo': 'https://pleiades.stoa.org/places/285482',
+                           'contributors': [],
+                           'created': '2016-07-13T13:31:46Z',
+                           'creators': [   {   'homepage': None,
+                                               'name': '',
+                                               'uri': 'https://pleiades.stoa.org/author/admin',
+                                               'username': 'admin'}],
+                           'description': '',
+                           'details': '',
+                           'end': None,
+                           'history': [],
+                           'id': '285482',
+                           'provenance': 'Pleiades',
+                           'references': [],
+                           'review_state': 'published',
+                           'start': None,
+                           'title': 'Mauretania Caesariensis',
+                           'uri': 'https://pleiades.stoa.org/places/295374/285482'}],
+    'connectsWith': ['https://pleiades.stoa.org/places/285482'],
+    'contributors': [   {'name': 'DARMC', 'username': None},
+                        {'name': 'R. Talbert', 'username': None},
+                        {   'homepage': None,
+                            'name': 'Sean Gillies',
+                            'uri': 'https://pleiades.stoa.org/author/sgillies',
+                            'username': 'sgillies'},
+
+>>> 
 ```
 
 # Roadmap
