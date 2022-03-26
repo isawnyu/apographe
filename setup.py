@@ -40,5 +40,5 @@ setuptools.setup(
         "validators",
         "webiquette @ git+https://github.com/paregorios/webiquette.git",
     ],
-    python_requires="==3.10.2",
+    python_requires=">=3.10.2",
 )
