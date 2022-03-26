@@ -6,6 +6,7 @@ Get places from a gazetteer
 
 from airtight.cli import configure_commandline
 from apographe.pleiades import Pleiades, PleiadesQuery
+import json
 import logging
 from pprint import pprint
 
@@ -68,7 +69,8 @@ def main(**kwargs):
         else:
             raise NotImplementedError(k)
     results = gaz.search(q)
-    pprint(results["hits"], indent=4)
+    s = json.dumps(results["hits"], indent=4, ensure_ascii=False, sort_keys=True)
+    print(s)
 
 
 if __name__ == "__main__":
