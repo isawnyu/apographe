@@ -135,6 +135,21 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
 # Roadmap
 
 - [x] add search functionality to pleiades web backend
+    - [x] title
+    - [x] text
+    - [x] feature_type
+    - [x] tag
+    - [x] bbox
+    - [ ] author
+    - [ ] contributor
+    - [ ] provenance
+    - [ ] cites
+    - [ ] new since
+- [ ] add web backends and baseline search for other gazetteers
+    - [ ] EDH
+    - [ ] iDAI
+    - [ ] CHGIS
+    - [ ] WHG
 - [ ] add basic filesystem backend, and then implement pleiades filesystem backend
 - [ ] elaborate Place data model mimicking Linked Places Format (mark done when full conformance)
     - [x] id (uri)
@@ -204,4 +219,5 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
     - [ ] export
         - [x] LPF GEOJSON
             - [ ] option to write multi-part geometries as convex polygons
-        
+- [ ] create scripts for various tasks from the commandline
+
