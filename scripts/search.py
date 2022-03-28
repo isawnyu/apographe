@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """
-Get places from a gazetteer
+Search for places in a gazetteer
 """
 
 from airtight.cli import configure_commandline
