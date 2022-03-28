@@ -15,6 +15,7 @@ from apographe.web import BackendWeb
 import geojson
 import json
 import logging
+from pprint import pformat
 import pytest
 from shapely.geometry import GeometryCollection, Point
 from shapely.geometry import shape as shapely_shape
@@ -53,9 +54,9 @@ class TestPleiadesWeb:
         assert n.toponym == "Ζουχάββαρι"
         assert n.language_tag == "grc"
         assert set(n.romanizations) == {"Zouchabbari", "Zouchábbari"}
-        assert isinstance(place.geometry, geojson.GeometryCollection)
-        assert len(place.geometry) == 2
-        for geo in place.geometry.geometries:
+        assert isinstance(place.geometry, GeometryCollection)
+        assert len(place.geometry.geoms) == 2
+        for geo in place.geometry.geoms:
             assert isinstance(geo, Point)
 
     def test_search_bounding_box(self):
@@ -264,6 +265,8 @@ class TestPleiadesSerialization:
         place = gaz.get("295374")
         s = json.dumps(place, cls=ApographeEncoder, ensure_ascii=False)
         d = json.loads(s)
+        logger = logging.getLogger(self.__class__.__name__ + ".test_json")
+        logger.debug(pformat(d, indent=4))
         assert set(d.keys()) == {
             "id_internal",
             "id",

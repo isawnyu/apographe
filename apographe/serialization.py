@@ -14,7 +14,7 @@ from language_tags.Tag import Tag
 from language_tags.Subtag import Subtag
 import logging
 from pprint import pformat
-from shapely.geometry import mapping, Point, LineString, Polygon
+from shapely.geometry import mapping, GeometryCollection, Point, LineString, Polygon
 
 
 class Serialization:
@@ -65,8 +65,13 @@ class Serialization:
             return [self._asdict_process(v) for v in value]
         elif isinstance(value, dict):
             return {k: self._asdict_process(v) for k, v in value.items()}
-        elif isinstance(value, (Point, LineString, Polygon)):
-            return mapping(value)
+        # elif isinstance(value, (Point, LineString, Polygon)):
+        #    return mapping(value)
+        elif isinstance(value, GeometryCollection):
+            return {
+                "type": "GeometryCollection",
+                "geometries": list(self._asdict_process(value.geoms)),
+            }
         elif isinstance(value, (Tag, Subtag)):
             return value.format
         else:
@@ -77,5 +82,7 @@ class ApographeEncoder(json.JSONEncoder):
     def default(self, obj):
         if isinstance(obj, Serialization):
             return obj.asdict()
+        elif isinstance(obj, (Point, LineString, Polygon)):
+            return mapping(obj)
         # Let the base class default method raise the TypeError
         return json.JSONEncoder.default(self, obj)

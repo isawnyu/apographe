@@ -20,6 +20,7 @@ import json
 import logging
 from pathlib import Path
 from pprint import pformat
+from shapely.geometry.collection import GeometryCollection
 from shapely.geometry import mapping as shapely_mapping
 from shapely.geometry import shape as shapely_shape
 from slugify import slugify
@@ -312,7 +313,7 @@ class Feature:
                 self.geometry = shapely_shape(geometries[0])
             elif len(geometries) > 1:
                 geo_collection = [shapely_shape(g) for g in geometries]
-                self.geometry = geojson.GeometryCollection(geo_collection)
+                self.geometry = GeometryCollection(geo_collection)
 
     @property
     def id(self):
