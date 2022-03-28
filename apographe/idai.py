@@ -15,6 +15,7 @@ from apographe.place import Place
 from apographe.query import Query
 from apographe.web import BackendWeb
 from copy import deepcopy
+from geojson import Point
 from iso639 import Lang as Lang639
 from language_tags import tags
 import logging
@@ -26,51 +27,12 @@ class IDAIQuery(Query):
     def __init__(self):
         Query.__init__(self)
         self._supported_parameters = {
-            "bbox": {"expected": (tuple), "behavior": self._preprocess_bbox},
-            "description": {
-                "expected": (str, list),
-                "list_behavior": "join",
-                "rename": "Description",
-            },
-            "feature_type": {
-                "expected": (str, list),
-                "list_behavior": "noseq",
-                "list_additional": {"AND": {"get_usage:ignore_empty": "operator:and"}},
-                "rename": "getFeatureType",
-            },
-            "tag": {
-                "expected": (str, list),
-                "list_behavior": "noseq",
-                "list_additional": {
-                    "AND": {"Subject_usage:ignore_empty": "operator:and"}
-                },
-                "rename": "Subject:list",
-            },
             "text": {
-                "expected": (str, list),
-                "list_behavior": "join",
-                "rename": "SearchableText",
+                "expected": str,
+                "rename": "q",
             },
-            "title": {"expected": str, "rename": "Title"},
         }
-        self._default_web_parameters = {
-            "portal_type:list": "Place",
-            "review_state:list": "published",
-        }
-
-    def _preprocess_bbox(self, bounds: tuple):
-        """Shave a small amount off the bounding box to keep Pleiades from expanding the search area."""
-        shaved_bounds = list()  # pleiades is weird
-        for i in [0, 1]:
-            shaved_bounds.append(bounds[i] + 0.0001)
-        for i in [2, 3]:
-            shaved_bounds.append(bounds[i] - 0.0001)
-        return {
-            "lowerLeft": f"{shaved_bounds[0]},{shaved_bounds[1]}",
-            "upperRight": f"{shaved_bounds[2]},{shaved_bounds[3]}",
-            "predicate": "intersection",
-            "location_precision:list": "precise",
-        }
+        self._default_web_parameters = {}
 
 
 class IDAI(BackendWeb, Gazetteer):
@@ -154,12 +116,16 @@ class IDAI(BackendWeb, Gazetteer):
         names = [self._kwargs_from_json_name(data["prefName"])]
         names.extend([self._kwargs_from_json_name(n) for n in data["names"]])
         kwargs["names"] = self._dedupe_names(names)
-        # kwargs["geometries"] = [self._kwargs_from_json_geometry(data["prefLocation"])]
+        kwargs["geometries"] = [self._kwargs_from_json_geometry(data["prefLocation"])]
         logger.debug(pformat(kwargs, indent=4))
         return kwargs
 
     def _kwargs_from_json_geometry(self, geometry):
-        raise NotImplementedError("geometry")
+        try:
+            coords = geometry["coordinates"]
+        except KeyError:
+            raise NotImplementedError(pformat(geometry, indent=4))
+        return Point(coords)
 
     def _kwargs_from_json_name(self, name):
         name_kwargs = dict()
@@ -219,13 +185,16 @@ class IDAI(BackendWeb, Gazetteer):
         )
         r = BackendWeb.search(self, query_uri)
         hits = list()
-        for entry in data.entries:
+        data = r.json()
+        logger = logging.getLogger(self.__class__.__name__ + "._idai_web_search")
+        logger.debug(pformat(data, indent=4))
+        for entry in data["result"]:
             hits.append(
                 {
-                    "id": entry.link.split("/")[-1],
-                    "uri": entry.link,
-                    "title": entry.title,
-                    "summary": entry.description,
+                    "id": entry["@id"].split("/")[-1],
+                    "uri": entry["@id"],
+                    "title": entry["prefName"]["title"],
+                    "summary": ", ".join([t.replace("-", " ") for t in entry["types"]]),
                 }
             )
         return {"query": query_uri, "hits": hits}

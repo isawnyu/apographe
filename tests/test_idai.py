@@ -12,11 +12,8 @@ Test the apographe.idai module
 from apographe.idai import IDAI, IDAIQuery
 from apographe.serialization import ApographeEncoder
 from apographe.web import BackendWeb
-import geojson
-import json
 import logging
 from pprint import pformat
-import pytest
 from shapely.geometry import GeometryCollection, Point
 from shapely.geometry import shape as shapely_shape
 
@@ -58,7 +55,7 @@ class TestIDAIWeb:
         assert len(names) == 1
         n = names[0]
         assert set(n.romanizations) == {"Zucchabar"}
-        # assert isinstance(place.geometry, geojson.Point)
+        assert isinstance(place.geometry, Point)
 
     def test_names(self):
         global gaz
@@ -79,110 +76,116 @@ class TestIDAIWeb:
                 assert name.language_tag in ["de", "nl"]
             elif name.toponym == "Пекинг":
                 assert name.language_tag == "sr"
+        assert isinstance(place.geometry, Point)
+        assert place.geometry.x == 116.393339
+        assert place.geometry.y == 39.904655
+
+    #    def test_search_bounding_box(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        bounds = (2.0, 36.0, 2.5, 36.5)
+    #        q.set_parameter("bbox", bounds)
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 8
+    #        ids = {hit["id"] for hit in results["hits"]}
+    #        expected = {
+    #            "295216",
+    #            "295275",
+    #            "295304",
+    #            "295340",
+    #            "295342",
+    #            "295366",
+    #            "295374",
+    #            "296719",
+    #        }
+    #        assert ids == expected
+    #
+    #    def test_search_description(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("description", "Punic")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) >= 74
+    #
+    #    def test_search_description_or(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("description", ["contested", "conflict"], "OR")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) >= 10
+    #
+    #    def test_search_description_and(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("description", ["contested", "conflict"], "AND")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 1
+    #
+    #    def test_search_feature_type_or(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("feature_type", ["acropolis", "agora"], "OR")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 25
+    #
+    #    def test_search_tag(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("tag", "Ammon")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 1
+    #
+    #    def test_search_tag_or(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("tag", ["Ammon", "Amun"], "OR")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 2
+    #
+    #    def test_search_tag_and(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("tag", ["Magna Mater", "Mithras"], "AND")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 1
+    #
+    #    def test_search_title(self):
+    #        global gaz
+    #        gaz.backend = "web"
+    #        q = PleiadesQuery()
+    #        q.set_parameter("title", "Zucchabar")
+    #        results = gaz.search(q)
+    #        assert len(results["hits"]) == 1
+    #        hit = results["hits"][0]
+    #        assert hit["id"] == "295374"
+    #        assert hit["title"] == "Zucchabar"
+    #        assert hit["uri"] == "https://pleiades.stoa.org/places/295374"
+    #        assert hit["summary"].startswith(
+    #            "Zucchabar was an ancient city of Mauretania Caesariensis with Punic origins."
+    #        )
+    #
+    def test_search_text_simple(self):
+        global gaz
+        gaz.backend = "web"
+        q = IDAIQuery()
+        q.set_parameter("text", "Zucchabar")
+        results = gaz.search(q)
+        assert len(results["hits"]) == 1
+        for hit in results["hits"]:
+            assert hit["id"] == "2765865"
+            assert hit["uri"] == "https://gazetteer.dainst.org/place/2765865"
+            assert hit["title"] == "Miliana"
+            assert hit["summary"] == "populated place"
 
 
-#    def test_search_bounding_box(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        bounds = (2.0, 36.0, 2.5, 36.5)
-#        q.set_parameter("bbox", bounds)
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 8
-#        ids = {hit["id"] for hit in results["hits"]}
-#        expected = {
-#            "295216",
-#            "295275",
-#            "295304",
-#            "295340",
-#            "295342",
-#            "295366",
-#            "295374",
-#            "296719",
-#        }
-#        assert ids == expected
-#
-#    def test_search_description(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("description", "Punic")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) >= 74
-#
-#    def test_search_description_or(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("description", ["contested", "conflict"], "OR")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) >= 10
-#
-#    def test_search_description_and(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("description", ["contested", "conflict"], "AND")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 1
-#
-#    def test_search_feature_type_or(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("feature_type", ["acropolis", "agora"], "OR")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 25
-#
-#    def test_search_tag(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("tag", "Ammon")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 1
-#
-#    def test_search_tag_or(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("tag", ["Ammon", "Amun"], "OR")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 2
-#
-#    def test_search_tag_and(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("tag", ["Magna Mater", "Mithras"], "AND")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 1
-#
-#    def test_search_title(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("title", "Zucchabar")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 1
-#        hit = results["hits"][0]
-#        assert hit["id"] == "295374"
-#        assert hit["title"] == "Zucchabar"
-#        assert hit["uri"] == "https://pleiades.stoa.org/places/295374"
-#        assert hit["summary"].startswith(
-#            "Zucchabar was an ancient city of Mauretania Caesariensis with Punic origins."
-#        )
-#
-#    def test_search_text_simple(self):
-#        global gaz
-#        gaz.backend = "web"
-#        q = PleiadesQuery()
-#        q.set_parameter("text", "Miliana")
-#        results = gaz.search(q)
-#        assert len(results["hits"]) == 4
-#        for hit in results["hits"]:
-#            assert hit["id"] in ["315048", "295374", "295304", "315104"]
-#
 #    def test_search_text_or(self):
 #        global gaz
 #        gaz.backend = "web"
