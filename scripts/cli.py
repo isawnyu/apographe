@@ -57,7 +57,7 @@ def interact(config_path, scan):
     if scan:
         s += " and scanning all configured document roots for projects and tasks ..."
     c.print("[italic]" + s + "[/]")
-    i = Interpreter(config_path=config_path, rescan=scan)
+    i = Interpreter()
     c.print("[italic]... ready[/]")
     while (
         True

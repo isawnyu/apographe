@@ -28,7 +28,8 @@ class IDAIQuery(Query):
         Query.__init__(self)
         self._supported_parameters = {
             "text": {
-                "expected": str,
+                "expected": (str, list),
+                "list_behavior": "join",
                 "rename": "q",
             },
         }
