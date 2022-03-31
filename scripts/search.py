@@ -1,5 +1,9 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
+#
+# This file is part of apographe
+# by Tom Elliott for the Institute for the Study of the Ancient World
+# (c) Copyright 2022 by New York University
+# Licensed under the AGPL-3.0; see LICENSE.txt file.
+#
 """
 Search for places in a gazetteer
 """
