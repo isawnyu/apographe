@@ -39,6 +39,7 @@ setuptools.setup(
         "pinyin",
         "python-slugify",
         "regex",
+        "rich",
         "romanize3",
         "Shapely",
         "transliterate",
