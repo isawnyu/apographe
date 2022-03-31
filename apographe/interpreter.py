@@ -96,7 +96,13 @@ class Interpreter:
         )
 
     def _cmd_help(self, *args, **kwargs):
-        """List available commands."""
+        """
+        List available commands or get help with using an individual command.
+            > help
+            > help search
+        """
+        if args:
+            return self._usage(args[0])
         commands = self.supported_commands
         table = self._rich_table(
             title="Supported Commands",
