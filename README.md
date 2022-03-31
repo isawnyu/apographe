@@ -5,7 +5,7 @@
 
 ## Getting started
 
-Assumes an activated python 3.10.2 virtual environment. 
+Assumes an activated python 3.10.2 or greater virtual environment. 
 
 ```
 pip install -U git+https://github.com/isawnyu/apographe.git
@@ -147,9 +147,10 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
     - [ ] new since
 - [ ] add web backends and baseline search for other gazetteers
     - [ ] EDH
-    - [ ] iDAI
+    - [x] iDAI
     - [ ] CHGIS
     - [ ] WHG
+    - [ ] OpenStreetMap
 - [ ] add basic filesystem backend, and then implement pleiades filesystem backend
 - [ ] elaborate Place data model mimicking Linked Places Format (mark done when full conformance)
     - [x] id (uri)
@@ -221,3 +222,11 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
             - [ ] option to write multi-part geometries as convex polygons
 - [ ] create scripts for various tasks from the commandline
 
+## Search capabilities
+
+Blank cells indicate possible, but not yet implemented, options.
+
+| gazetteer | title | text | feature type | tag | bbox |
+| --- | :---: | :---: | :---: | :---: | :---: |
+| idai | | yes | | n/a | |
+| pleiades | yes | yes | yes | yes | yes |
