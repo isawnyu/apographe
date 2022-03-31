@@ -3,6 +3,10 @@
 - ἀπογραφή: a register or list of lands or property
 - gazetteer: a geographic dictionary or index
 
+*Apographe* is written and maintained by [Tom Elliott](https://isaw.nyu.edu/people/staff/tom-elliott) for the [Institute for the Study of the Ancient World](https://isaw.nyu.edu).  
+Copyright 2022 New York University.  
+This software is published and distributed under the terms of the *GNU Affero General Public License,* version 3 (see LICENSE.txt for details).
+
 ## Getting started
 
 Assumes an activated python 3.10.2 or greater virtual environment. 
