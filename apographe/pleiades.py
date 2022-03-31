@@ -72,6 +72,8 @@ class PleiadesQuery(Query):
 
 
 class Pleiades(BackendWeb, Gazetteer):
+    """Interface for the Pleiades gazetteer of ancient places."""
+
     def __init__(self):
         Gazetteer.__init__(self, name="Pleiades")
         kwargs = {

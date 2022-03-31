@@ -37,6 +37,8 @@ class IDAIQuery(Query):
 
 
 class IDAI(BackendWeb, Gazetteer):
+    """Interface for the iDAI Gazetteer of the German Archaeological Institute."""
+
     def __init__(self):
         Gazetteer.__init__(self, name="iDAI")
         kwargs = {

@@ -54,9 +54,9 @@ class Interpreter:
     def __init__(self):
         # what?
         self._gazetteers = {
-            "idai": None,
-            "pleiades": None,
-        }  # only initialize a gazetteer interface when the gazetteer is actually invoked by a user
+            "idai": (IDAI(), IDAIQuery),
+            "pleiades": (Pleiades(), PleiadesQuery),
+        }
         self._search_results = dict()
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -79,8 +79,24 @@ class Interpreter:
         logger = logging.getLogger(self.__class__.__name__ + ".supported_commands")
         return [m[5:] for m in dir(self) if m.startswith("_cmd_")]
 
+    def _cmd_gazetteers(self, *args, **kwargs):
+        """List supported gazetteers."""
+        gazetteer_names = sorted(list(self._gazetteers.keys()))
+        rows = list()
+        for gn in gazetteer_names:
+            desc = getdoc(self._gazetteers[gn][0])
+            desc = desc.replace("Interface for the ", "")
+            if desc[-1] == ".":
+                desc = desc[:-1]
+            rows.append((gn, desc))
+        return self._rich_table(
+            title="Supported gazetteers",
+            columns=(("name", {}), ("description", {})),
+            rows=rows,
+        )
+
     def _cmd_help(self, *args, **kwargs):
-        """List available commands with descriptions extracted from corresponding method docstrings."""
+        """List available commands."""
         commands = self.supported_commands
         table = self._rich_table(
             title="Supported Commands",
@@ -146,16 +162,6 @@ class Interpreter:
             gazetteers = " ".join(list(self._gazetteers.keys()))
             msg = f"Could not invoke gazetteer named '{gazetteer_name}'. Expected one of: {gazetteers.sort()}"
             raise UsageError(self, cmd_name, msg)
-        if gaz_info is None:
-            if gazetteer_name == "idai":
-                gaz_interface = IDAI()
-                gaz_query_class = IDAIQuery
-            elif gazetteer_name == "pleiades":
-                gaz_interface = Pleiades()
-                gaz_query_class = PleiadesQuery
-            gaz_interface.backend = "web"  # only "web" is currently supported, so we don't surface this in CLI
-            gaz_info = (gaz_interface, gaz_query_class)
-            self._gazetteers[gazetteer_name] = gaz_info
         return gaz_info
 
     def _parse(self, cmd_string: str):

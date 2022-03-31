@@ -51,14 +51,11 @@ POSITIONAL_ARGUMENTS = [
 
 def interact(config_path, scan):
     c = Console(record=True)
-    c.print("[bold blue]Apographe:[/bold blue]")
-    c.print("[italic blue]type 'help' for a list of commands[/italic blue]")
-    s = "initializing interpreter"
-    if scan:
-        s += " and scanning all configured document roots for projects and tasks ..."
-    c.print("[italic]" + s + "[/]")
+    c.print("[bold]Apographe[/bold]")
+    c.print("[italic blue]initializing interpreter: please wait ...[/italic blue]")
     i = Interpreter()
-    c.print("[italic]... ready[/]")
+    c.print(i._cmd_gazetteers())
+    c.print("[italic blue]type 'help' for a list of commands[/italic blue]")
     while (
         True
     ):  # keep taking commands until something breaks us out to finish the program
