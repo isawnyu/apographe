@@ -184,21 +184,6 @@ class Interpreter:
             )
         return self.manager.load(args[0])
 
-    def _cmd_loglevel(self, *args, **kwargs):
-        """
-        Set the logging level to see log messages
-            > loglevel DEBUG
-        """
-        if len(args) != 1:
-            raise UsageError(
-                self,
-                "loglevel",
-                f"Expected one argument for the logging level to set, but instead got {len(args)} arguments.",
-            )
-        logging.basicConfig(level=args[0])
-        logger = logging.getLogger()
-        return f"Set logging level to {logger.level}."
-
     def _cmd_quit(self, *args, **kwargs):
         """Quit the program."""
         exit()
