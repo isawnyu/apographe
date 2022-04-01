@@ -11,15 +11,80 @@ This python package lets you build and work with a digital gazetteer for small o
 Copyright 2022 New York University.  
 This software is published and distributed under the terms of the *GNU Affero General Public License,* version 3 (see LICENSE.txt for details).
 
-## Getting started
+## Installation
 
-Assumes an activated python 3.10.2 or greater virtual environment. 
+*Apographe* needs a python 3.10.2 or greater virtual environment. 
+
+Activate the virtual environment and then:
 
 ```
 pip install -U git+https://github.com/isawnyu/apographe.git
 ```
 
-Then you can do stuff like:
+Then you can either work on the command line or in code.
+
+## Getting started (command line)
+
+Start the command-line interface:
+
+```
+$ python scripts/cli.py 
+    _                                      _          
+   / \   _ __   ___   __ _ _ __ __ _ _ __ | |__   ___ 
+  / _ \ | '_ \ / _ \ / _` | '__/ _` | '_ \| '_ \ / _ \
+ / ___ \| |_) | (_) | (_| | | | (_| | |_) | | | |  __/
+/_/   \_\ .__/ \___/ \__, |_|  \__,_| .__/|_| |_|\___|
+        |_|          |___/          |_|               
+
+Supported gazetteers                                                
+┏━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ name     ┃ description                                           ┃
+┡━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ idai     │ iDAI Gazetteer of the German Archaeological Institute │
+│ pleiades │ Pleiades gazetteer of ancient places                  │
+└──────────┴───────────────────────────────────────────────────────┘
+type 'help' for a list of commands
+> help
+Supported Commands                                                                        
+┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Command    ┃ Description                                                               ┃
+┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ accession  │ Collect a place from a gazetteer and convert/copy it to the internal      │
+│            │ gazetteer.                                                                │
+│ full       │ Show full information about a place in the internal gazetteer.            │
+│ gazetteers │ List supported gazetteers.                                                │
+│ help       │ List available commands or get help with using an individual command.     │
+│ quit       │ Quit the program.                                                         │
+│ search     │ Search a gazetteer.                                                       │
+└────────────┴───────────────────────────────────────────────────────────────────────────┘
+> search pleiades zucchabar
+Pleiades search results                                                                   
+┏━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ ID     ┃ Summary                                                                       ┃
+┡━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ 295374 │ Zucchabar                                                                     │
+│        │ https://pleiades.stoa.org/places/295374                                       │
+│        │ Zucchabar was an ancient city of Mauretania Caesariensis with Punic origins.  │
+│        │ The modern Algerian community of Miliana lies atop and around the largely     │
+│        │ unexcavated ancient site. Epigraphic evidence indicates that the Roman        │
+│        │ emperor Augustus established a veteran colony there.                          │
+└────────┴───────────────────────────────────────────────────────────────────────────────┘
+> accession pleiades 295374
+Accessioned place                                            
+┏━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ place key       ┃ place                                   ┃
+┡━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ pleiades:295374 │ Zucchabar                               │
+│                 │ https://pleiades.stoa.org/places/295374 │
+│                 │ NotImplemented                          │
+└─────────────────┴─────────────────────────────────────────┘
+> 
+```
+
+
+## Getting started (code)
+
+You can do stuff like:
 
 ```python
 Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] on darwin
