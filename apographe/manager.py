@@ -10,11 +10,14 @@ Manage higher-level operations for an API
 """
 from apographe.gazetteer import Gazetteer
 from apographe.idai import IDAI, IDAIQuery
+from apographe.linked_places_format import dump
 from apographe.pleiades import Pleiades, PleiadesQuery
 from copy import deepcopy
 from inspect import getdoc
 import logging
+from pathlib import Path, PurePath
 from slugify import slugify
+from sys import platform
 
 
 class Manager:
@@ -68,6 +71,23 @@ class Manager:
         except ValueError:
             raise ValueError(place_key)
         return place
+
+    def save(self, where: str):
+        """Save the places in the internal gazetteer to the directory at where"""
+        path = Path(where)
+        if len(path.parts) == 1:
+            NotImplementedError(where)
+        path = path.expanduser().resolve()
+        try:
+            path.mkdir(parents=True, exist_ok=False)
+        except FileExistsError:
+            raise
+        for place_key, place in self.apographe.items():
+            slug = slugify(place_key)
+            with open(path / f"{slug}.json", "w", encoding="utf-8") as fp:
+                dump(place, fp, ensure_ascii=False, indent=4, sort_keys=True)
+            del fp
+        return f"Wrote {len(self.apographe)} files to {str(path)}."
 
     def search(self, gazetteer_name, *args, **kwargs):
         """Search the indicated gazetteer."""

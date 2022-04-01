@@ -13,12 +13,9 @@ from apographe.linked_places_format import dumps
 from apographe.manager import Manager
 from inspect import getdoc
 import logging
-from pathlib import Path, PurePath
 from pprint import pformat
 import re
 import readline
-from rich.markdown import Markdown
-from rich.pretty import Pretty
 from rich.table import Table
 import shlex
 import traceback
@@ -159,6 +156,22 @@ class Interpreter:
     def _cmd_quit(self, *args, **kwargs):
         """Quit the program."""
         exit()
+
+    def _cmd_save(self, *args, **kwargs):
+        """
+        Save the contents of the internal gazetteer to the local filesystem.
+            > save /where/there/mygazetteer
+            > save $/gazetteers/thisgazetteer
+            > save thisgazetteer
+              (defaults to the user's "documents" folder, if defined)
+        """
+        if len(args) != 1:
+            raise UsageError(
+                self,
+                "save",
+                f"Expected one argument for the directory pathname to use in saving the internal gazetteer, but instead got {len(args)} arguments.",
+            )
+        return self.manager.save(args[0])
 
     def _cmd_search(self, *args, **kwargs):
         """
