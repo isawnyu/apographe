@@ -8,8 +8,8 @@
 """
 Provide Interpreter class for scripting apographe
 """
-from apographe.idai import IDAI, IDAIQuery
-from apographe.pleiades import Pleiades, PleiadesQuery
+from curses.ascii import US
+from apographe.manager import Manager
 from inspect import getdoc
 import logging
 from pathlib import Path, PurePath
@@ -52,13 +52,8 @@ class UsageError(ValueError):
 
 class Interpreter:
     def __init__(self):
-        # what?
-        self._gazetteers = {
-            "idai": (IDAI(), IDAIQuery),
-            "pleiades": (Pleiades(), PleiadesQuery),
-        }
-        self._search_results = dict()
         self.logger = logging.getLogger(self.__class__.__name__)
+        self.manager = Manager()
 
     def execute(self, cmd_string: str):
         """Carry out a single-line command."""
@@ -81,18 +76,10 @@ class Interpreter:
 
     def _cmd_gazetteers(self, *args, **kwargs):
         """List supported gazetteers."""
-        gazetteer_names = sorted(list(self._gazetteers.keys()))
-        rows = list()
-        for gn in gazetteer_names:
-            desc = getdoc(self._gazetteers[gn][0])
-            desc = desc.replace("Interface for the ", "")
-            if desc[-1] == ".":
-                desc = desc[:-1]
-            rows.append((gn, desc))
         return self._rich_table(
             title="Supported gazetteers",
             columns=(("name", {}), ("description", {})),
-            rows=rows,
+            rows=self.manager.supported_gazetteers,
         )
 
     def _cmd_help(self, *args, **kwargs):
@@ -127,27 +114,15 @@ class Interpreter:
             > search results
               (list all results from searches so far in this session)
         """
+        if not args:
+            raise UsageError(self, "search", "A gazetteer name is required.")
         gazetteer_name = args[0].lower()
         if gazetteer_name == "results":
             return self._search_result_table()
-        gazetteer_interface, gazetteer_query_class = self._invoke_gazetteer(
-            gazetteer_name, "search"
-        )
-        query = gazetteer_query_class()
-        if len(args) > 1:
-            query.set_parameter("text", list(args[1:]))
-        for name, value in kwargs.items():
-            query.set_parameter(name, value)
-        results = gazetteer_interface.search(query)
-        if results["hits"]:
-            try:
-                self._search_results[gazetteer_name]
-            except KeyError:
-                self._search_results[gazetteer_name] = dict()
-            finally:
-                memcache = self._search_results[gazetteer_name]
-            for hit in results["hits"]:
-                memcache[hit["id"]] = hit
+        try:
+            hits = self.manager.search(gazetteer_name, *args, **kwargs)
+        except ValueError as err:
+            raise UsageError(self, "search", str(err))
         return self._rich_table(
             title=f"{gazetteer_name.title()} search results",
             columns=(("ID", {}), ("Summary", {})),
@@ -156,19 +131,9 @@ class Interpreter:
                     f"[bold]{h['id']}[/bold]",
                     f"[bold]{h['title']}[/bold]\n{h['uri']}\n{h['summary']}",
                 )
-                for h in results["hits"]
+                for h in hits
             ],
         )
-
-    def _invoke_gazetteer(self, gazetteer_name: str, cmd_name: str):
-        """Retrieve appropriate gazetteer interface (initialize if necessary)"""
-        try:
-            gaz_info = self._gazetteers[gazetteer_name]
-        except KeyError:
-            gazetteers = " ".join(list(self._gazetteers.keys()))
-            msg = f"Could not invoke gazetteer named '{gazetteer_name}'. Expected one of: {gazetteers.sort()}"
-            raise UsageError(self, cmd_name, msg)
-        return gaz_info
 
     def _parse(self, cmd_string: str):
         """Parse a single-line command from cmd_string."""
@@ -198,19 +163,13 @@ class Interpreter:
     def _search_result_table(self):
         """Structure a rich table of all search results in the memcache"""
         rows = list()
-        gazetteer_names = sorted(list(self._search_results.keys()))
-        for gazetteer_name in gazetteer_names:
-            ids = sorted(
-                [int(id) for id in list(self._search_results[gazetteer_name].keys())]
-            )
-            for id in ids:
-                hit = self._search_results[gazetteer_name][str(id)]
-                rows.append(
-                    (
-                        f"[bold]{gazetteer_name} {hit['id']}[/bold]",
-                        f"[bold]{hit['title']}[/bold]\n{hit['uri']}\n{hit['summary']}",
-                    )
+        for hit in self.manager.search_results:
+            rows.append(
+                (
+                    f"[bold]{hit['gazetteer_name']} {hit['id']}[/bold]",
+                    f"[bold]{hit['title']}[/bold]\n{hit['uri']}\n{hit['summary']}",
                 )
+            )
         return self._rich_table(
             title=f"All search results",
             columns=(("gazetteer ID", {}), ("Summary", {})),
