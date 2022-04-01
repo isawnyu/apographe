@@ -10,8 +10,9 @@ Command-line interface for apographe
 """
 
 from airtight.cli import configure_commandline
-import logging
 from apographe.interpreter import Interpreter, InvalidCommandError, UsageError
+import logging
+from pyfiglet import Figlet
 from rich.console import Console
 
 
@@ -51,7 +52,9 @@ POSITIONAL_ARGUMENTS = [
 
 def interact(config_path, scan):
     c = Console(record=True)
-    c.print("[bold]Apographe[/bold]")
+    f = Figlet()
+    # c.print("[bold]Apographe[/bold]")
+    c.print("[bold blue]" + f.renderText("Apographe") + "[/bold blue]")
     i = Interpreter()
     c.print(i._cmd_gazetteers())
     c.print("[italic blue]type 'help' for a list of commands[/italic blue]")

@@ -37,6 +37,7 @@ setuptools.setup(
         "markupsafe",
         "numpy",
         "pinyin",
+        "pyfiglet",
         "python-slugify",
         "regex",
         "rich",
