@@ -9,6 +9,7 @@
 Provide Interpreter class for scripting apographe
 """
 from curses.ascii import US
+from apographe.linked_places_format import dumps
 from apographe.manager import Manager
 from inspect import getdoc
 import logging
@@ -17,6 +18,7 @@ from pprint import pformat
 import re
 import readline
 from rich.markdown import Markdown
+from rich.pretty import Pretty
 from rich.table import Table
 import shlex
 import traceback
@@ -76,7 +78,7 @@ class Interpreter:
 
     def _cmd_accession(self, *args, **kwargs):
         """
-        Collect a place from a gazetteer and convert/copy it to the local list of places.
+        Collect a place from a gazetteer and convert/copy it to the internal gazetteer.
             > accession pleiades 295374
         """
         if len(args) != 2:
@@ -97,6 +99,35 @@ class Interpreter:
                 )
             ],
         )
+
+    def _cmd_full(self, *args, **kwargs):
+        """
+        Show full information about a place in the internal gazetteer.
+            > full pleiades:295374
+              (assumes a place with place key 'pleiades:295374' is already in the internal gazetteer)
+        """
+        if len(kwargs) == 1 and not args:
+            # colon in the place key
+            k = list(kwargs.keys())[0]
+            place_key = f"{k}:{kwargs[k]}"
+        elif len(args) == 1:
+            place_key = args[0]
+        else:
+            raise UsageError(
+                self,
+                "full",
+                f"Expected one argument (the place key), but got {len(args)} positional arguments and {len(kwargs)} keyword arguments.",
+                args,
+            )
+        try:
+            place = self.manager.get_place(place_key)
+        except ValueError as err:
+            raise UsageError(
+                self,
+                "full",
+                f"The place key '{place_key}' is not in the internal gazetteer.",
+            )
+        return dumps(place, ensure_ascii=False, indent=4, sort_keys=True)
 
     def _cmd_gazetteers(self, *args, **kwargs):
         """List supported gazetteers."""

@@ -61,6 +61,14 @@ class Manager:
                 raise
         return (gazetteer_interface, gazetteer_query_class)
 
+    def get_place(self, place_key):
+        """Get a place from the internal gazetteer."""
+        try:
+            place = self.apographe[place_key]
+        except ValueError:
+            raise ValueError(place_key)
+        return place
+
     def search(self, gazetteer_name, *args, **kwargs):
         """Search the indicated gazetteer."""
         gazetteer_interface, gazetteer_query_class = self.get_gazetteer(gazetteer_name)
