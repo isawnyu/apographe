@@ -3,6 +3,10 @@
 - ἀπογραφή: a register or list of lands or property
 - gazetteer: a geographic dictionary or index
 
+This python package lets you build and work with a digital gazetteer for small or individual projects. The "internal gazetteer" can be loaded from and saved to a file in the [Linked Places Format](https://github.com/LinkedPasts/linked-places-format) (LPF: an extension of [GeoJSON](https://datatracker.ietf.org/doc/html/rfc7946)). You can add places to the internal gazetteer by accessioning them from a growing list of external digital gazetteers. *Apographe* enables a common subset of possible queries against the supported gazetteers to facilitate discovery and review.
+
+*Apographe* tries to be polite and speedy. It uses the [webiquette](https://github.com/paregorios/webiquette) package to ensure that all web transactions involved in searching the external gazetteers and retrieving content from them are handled with respect for the `disallow` and `crawl-delay` directives in each external site's robots.txt, with the exception of sites, like *GeoNames*, that host public APIs that bizarrely include a `user-agent * disallow` directive for the API. Moreover, web transactions are locally cached according to caching rules found in the response headers supplied by the individual sites (or sensible defaults) so that subsequent lookups draw from the local cache instead of hitting the website over and over.
+
 *Apographe* is written and maintained by [Tom Elliott](https://isaw.nyu.edu/people/staff/tom-elliott) for the [Institute for the Study of the Ancient World](https://isaw.nyu.edu).  
 Copyright 2022 New York University.  
 This software is published and distributed under the terms of the *GNU Affero General Public License,* version 3 (see LICENSE.txt for details).
