@@ -10,12 +10,14 @@ Manage higher-level operations for an API
 """
 from apographe.gazetteer import Gazetteer
 from apographe.idai import IDAI, IDAIQuery
-from apographe.linked_places_format import dump
+from apographe.linked_places_format import dump, load
+from apographe.place import Place
 from apographe.pleiades import Pleiades, PleiadesQuery
 from copy import deepcopy
 from inspect import getdoc
 import logging
 from pathlib import Path, PurePath
+from pprint import pformat
 from slugify import slugify
 from sys import platform
 
@@ -72,22 +74,102 @@ class Manager:
             raise ValueError(place_key)
         return place
 
-    def save(self, where: str):
-        """Save the places in the internal gazetteer to the directory at where"""
+    def internal(self):
+        """List all places in the internal gazetteer."""
+        places = [(place_key, place) for place_key, place in self.apographe.items()]
+        places.sort(key=lambda x: slugify(x[1].properties.title))
+        hits = list()
+        for place_key, place in places:
+            hits.append(
+                {
+                    "place_key": place_key,
+                    "title": place.properties.title,
+                    "uri": place.uri,
+                    "summary": "NotImplemented",
+                }
+            )
+        return hits
+
+    def load(self, where: str):
+        """Load JSONLPF files at 'where' as places in the internal gazetteer"""
         path = Path(where)
         if len(path.parts) == 1:
             NotImplementedError(where)
         path = path.expanduser().resolve()
-        try:
-            path.mkdir(parents=True, exist_ok=False)
-        except FileExistsError:
-            raise
-        for place_key, place in self.apographe.items():
-            slug = slugify(place_key)
-            with open(path / f"{slug}.json", "w", encoding="utf-8") as fp:
-                dump(place, fp, ensure_ascii=False, indent=4, sort_keys=True)
-            del fp
-        return f"Wrote {len(self.apographe)} files to {str(path)}."
+        if path.is_dir():
+            for filepath in path.glob("*.json"):
+                fn = filepath.name
+                with open(filepath, "r", encoding="utf-8") as fp:
+                    features = load(fp)
+                del fp
+                places = [Place(**f) for f in features]
+                for place in places:
+                    for place_id in [
+                        place.id,
+                        f"{slugify(place.properties.title)}",
+                        f"{slugify(fn.split('.')[0])}:{place.id}",
+                    ]:
+                        try:
+                            self.apographe[place_id]
+                        except KeyError:
+                            self.apographe[place_id] = place
+                            break
+                    try:
+                        self.apographe[place_id]
+                    except KeyError:
+                        raise RuntimeError()
+        return f"Read {len(self.apographe)} places from {str(path)}."
+
+    def save(self, mode: str = "all", where: str = ""):
+        """Save the places in the internal gazetteer to the directory at where"""
+        filename = None
+        dirpath = None
+        if where:
+            path = Path(where)
+            path = path.expanduser()
+            if where.endswith(".json") and mode != "each":
+                filename = path.parts[-1]
+            elif len(path.parts) == 1:
+                filename = f"{where}.json"
+            elif mode == "all":
+                filename = "all.json"
+            elif mode not in ["all", "each"]:
+                filename = f"{mode}.json"
+            if filename:
+                if filename == f"{where}.json" and len(path.parts) == 1:
+                    # dirpath = user home
+                    raise NotImplementedError()
+                elif len(path.parts) == 1 and filename == path.parts[0]:
+                    # dirpath = user home
+                    raise NotImplementedError()
+                elif filename == path.parts[-1]:
+                    dirpath = path.parent
+                else:
+                    dirpath = path
+        else:
+            # dirpath = user home
+            raise NotImplementedError()
+        dirpath = path.resolve()
+        if not dirpath:
+            raise RuntimeError()
+        dirpath.mkdir(parents=True, exist_ok=True)
+
+        if mode == "all" and dirpath and filename:
+            # save all to a single LPF file
+            raise NotImplementedError(mode)
+        elif mode == "each" and dirpath and not filename:
+            # save each place to a separate LPF file
+            for place_key, place in self.apographe.items():
+                slug = slugify(place_key)
+                filename = f"{slug}.json"
+                self.logger.debug(f"saving {str(dirpath / filename)}.")
+                with open(dirpath / filename, "w", encoding="utf-8") as fp:
+                    dump(place, fp, ensure_ascii=False, indent=4, sort_keys=True)
+                del fp
+                return f"Wrote {len(self.apographe)} files to {str(path)}."
+        elif mode and dirpath and filename:
+            # save individual to a single file
+            raise NotImplementedError()
 
     def search(self, gazetteer_name, *args, **kwargs):
         """Search the indicated gazetteer."""

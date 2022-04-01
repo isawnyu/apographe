@@ -144,7 +144,7 @@ class Interpreter:
             return self._usage(args[0])
         commands = self.supported_commands
         table = self._rich_table(
-            title="Supported Commands",
+            title="Supported commands",
             columns=(("Command", {}), ("Description", {})),
             rows=[
                 (c, getdoc(getattr(self, f"_cmd_{c}")).splitlines()[0])
@@ -153,6 +153,52 @@ class Interpreter:
         )
         return table
 
+    def _cmd_internal(self, *args, **kwargs):
+        """
+        List all places in the internal gazetteer.
+        """
+        table = self._rich_table(
+            title="Contents of the internal gazetteer",
+            columns=(("place key", {}), ("place", {})),
+            rows=[
+                (
+                    f"[bold]{hit['place_key']}[/bold]",
+                    f"[bold]{hit['title']}[/bold]\n{hit['uri']}\n{hit['summary']}",
+                )
+                for hit in self.manager.internal()
+            ],
+        )
+        return table
+
+    def _cmd_load(self, *args, **kwargs):
+        """
+        Load LPF JSON files on the local filesystem into the internal gazetteer.
+            > load /where/there/mygazetteer
+            > load ~/gazetteers/thisgazetteer
+        """
+        if len(args) != 1:
+            raise UsageError(
+                self,
+                "load",
+                f"Expected one argument for the directory pathname to use in load the internal gazetteer, but instead got {len(args)} arguments.",
+            )
+        return self.manager.load(args[0])
+
+    def _cmd_loglevel(self, *args, **kwargs):
+        """
+        Set the logging level to see log messages
+            > loglevel DEBUG
+        """
+        if len(args) != 1:
+            raise UsageError(
+                self,
+                "loglevel",
+                f"Expected one argument for the logging level to set, but instead got {len(args)} arguments.",
+            )
+        logging.basicConfig(level=args[0])
+        logger = logging.getLogger()
+        return f"Set logging level to {logger.level}."
+
     def _cmd_quit(self, *args, **kwargs):
         """Quit the program."""
         exit()
@@ -160,18 +206,20 @@ class Interpreter:
     def _cmd_save(self, *args, **kwargs):
         """
         Save the contents of the internal gazetteer to the local filesystem.
-            > save /where/there/mygazetteer
-            > save $/gazetteers/thisgazetteer
-            > save thisgazetteer
-              (defaults to the user's "documents" folder, if defined)
+            > save all /where/there/mygazetteer
+              (saves all places to a single file named "all.json" in the "mygazetteer" directory)
+            > save all /where/there/mygazetteer.json
+              (saves all places to a single file named "mygazetteer.json" in the "there" directory)
+            > save each ~/gazetteers/thisgazetteer
+              (saves each place to a separate json file in the "thisgazetteer" directory)
         """
-        if len(args) != 1:
+        if len(args) > 2:
             raise UsageError(
                 self,
                 "save",
-                f"Expected one argument for the directory pathname to use in saving the internal gazetteer, but instead got {len(args)} arguments.",
+                f"Expected no more than two arguments to use in saving the internal gazetteer, but instead got {len(args)} arguments.",
             )
-        return self.manager.save(args[0])
+        return self.manager.save(*args)
 
     def _cmd_search(self, *args, **kwargs):
         """

@@ -10,10 +10,14 @@ Define Place class
 """
 from apographe.linked_places_format import Feature
 from apographe.serialization import Serialization
+import logging
+from pprint import pformat
 
 
 class Place(Feature, Serialization):
     def __init__(self, raw=None, **kwargs):
-        Serialization.__init__(self, omit="raw")
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.debug(pformat(kwargs, indent=4))
+        Serialization.__init__(self, omit=["raw", "logger"])
         self.raw = raw
         Feature.__init__(self, **kwargs)

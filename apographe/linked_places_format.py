@@ -62,6 +62,12 @@ def dumps(obj, ensure_ascii=True, indent=None, sort_keys=False):
     )
 
 
+def load(fp):
+    """Read a file"""
+    loadd = json.load(fp)
+    return loadd["features"]
+
+
 class Name(LanguageAware, Serialization):
     def __init__(self, toponym: str = "", romanizations=[], **kwargs):
         LanguageAware.__init__(self, **kwargs)
@@ -229,13 +235,24 @@ class NameCollection(Serialization):
 
 
 class Properties(Serialization):
-    def __init__(self, title: str = "", ccodes: list = [], **kwargs):
+    def __init__(
+        self, title: str = "", ccodes: list = [], properties: dict = {}, **kwargs
+    ):
         Serialization.__init__(self)
         self._title = ""
         self._ccodes = set()
 
-        self.title = title
-        self.ccodes = ccodes
+        if title:
+            self.title = title
+        if ccodes:
+            self.ccodes = ccodes
+        if properties:
+            for k in ["title", "ccodes"]:
+                try:
+                    v = properties[k]
+                except KeyError:
+                    continue
+                setattr(self, k, v)
 
     # country codes -- presently lacks validation
     @property
@@ -288,6 +305,9 @@ class Properties(Serialization):
 
 class Feature:
     def __init__(self, id: str = None, uri: URI = None, **kwargs):
+        self.logger = logging.getLogger(self.__class__.__name__)
+        self.logger.debug(pformat(kwargs, indent=4))
+
         self._id_internal = uuid4().hex
         self._id = None
         self._uri = None
