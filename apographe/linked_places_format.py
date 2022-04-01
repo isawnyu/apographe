@@ -347,3 +347,6 @@ class Feature:
                     if not validators.url(this_uri.uri):
                         raise ValueError(f"Invalid URI: {v}.")
             self._uri = this_uri
+
+    def __str__(self):
+        return f"Feature({self.properties.title}: <{self.uri}>)"

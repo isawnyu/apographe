@@ -45,7 +45,7 @@ class UsageError(ValueError):
 
     def _usage(self, interp, cmd):
         try:
-            return "\n".join(getdoc(getattr(interp, f"_cmd_{cmd}")).splitlines[1:])
+            return "\n".join(getdoc(getattr(interp, f"_cmd_{cmd}")).splitlines()[1:])
         except AttributeError:
             return ""
 
@@ -73,6 +73,30 @@ class Interpreter:
     def supported_commands(self):
         logger = logging.getLogger(self.__class__.__name__ + ".supported_commands")
         return [m[5:] for m in dir(self) if m.startswith("_cmd_")]
+
+    def _cmd_accession(self, *args, **kwargs):
+        """
+        Collect a place from a gazetteer and convert/copy it to the local list of places.
+            > accession pleiades 295374
+        """
+        if len(args) != 2:
+            raise UsageError(
+                self,
+                "accession",
+                f"Expected two arguments, but got {len(args)}",
+                args,
+            )
+        hit = self.manager.accession(*args)
+        return self._rich_table(
+            title="Accessioned place",
+            columns=(("place key", {}), ("place", {})),
+            rows=[
+                (
+                    f"[bold]{hit['place_key']}[/bold]",
+                    f"[bold]{hit['title']}[/bold]\n{hit['uri']}\n{hit['summary']}",
+                )
+            ],
+        )
 
     def _cmd_gazetteers(self, *args, **kwargs):
         """List supported gazetteers."""

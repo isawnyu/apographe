@@ -21,6 +21,7 @@ class Manager:
     """API"""
 
     def __init__(self):
+        self.apographe = dict()  # local list of places
         self._gazetteers = {
             "idai": (IDAI, IDAIQuery),
             "pleiades": (Pleiades, PleiadesQuery),
@@ -28,8 +29,22 @@ class Manager:
         self._search_results = dict()  # keep track of all search results this session
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def search(self, gazetteer_name, *args, **kwargs):
-        """Search the indicated gazetteer."""
+    def accession(self, gazetteer_name: str, place_id: str):
+        """Collect a place from a gazetteer and convert/copy it to the local list of places"""
+        gazetteer_interface, gazetteer_query_class = self.get_gazetteer(gazetteer_name)
+        gplace = gazetteer_interface.get(place_id)
+        place_key = f"{gazetteer_name}:{place_id}"
+        self.apographe[place_key] = gplace
+        hit = {
+            "place_key": place_key,
+            "title": gplace.properties.title,
+            "uri": gplace.uri,
+            "summary": "NotImplemented",
+        }
+        return hit
+
+    def get_gazetteer(self, gazetteer_name):
+        """Get gazetteer interface and query class using the gazetteer name."""
         try:
             gazetteer_interface, gazetteer_query_class = self._invoke_gazetteer(
                 gazetteer_name
@@ -44,7 +59,11 @@ class Manager:
                 raise ValueError(self, msg)
             else:
                 raise
+        return (gazetteer_interface, gazetteer_query_class)
 
+    def search(self, gazetteer_name, *args, **kwargs):
+        """Search the indicated gazetteer."""
+        gazetteer_interface, gazetteer_query_class = self.get_gazetteer(gazetteer_name)
         query = gazetteer_query_class()
         if len(args) > 1:
             query.set_parameter("text", list(args[1:]))
