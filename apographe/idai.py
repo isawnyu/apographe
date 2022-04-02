@@ -125,8 +125,8 @@ class IDAI(BackendWeb, Gazetteer):
         ancient_names = "/".join(
             sorted(
                 [
-                    n
-                    for n in [na for na in data["names"] if "ancient" in data.keys()]
+                    n["title"]
+                    for n in [na for na in data["names"] if "ancient" in na.keys()]
                     if n["ancient"]
                 ]
             )
@@ -137,7 +137,7 @@ class IDAI(BackendWeb, Gazetteer):
                 desc += "s"
             desc += f": {ancient_names}"
         if desc:
-            desc += "("
+            desc += " ("
         place_types = "; ".join(sorted([pt.replace("-", " ") for pt in data["types"]]))
         desc += place_types
         if "(" in desc:
