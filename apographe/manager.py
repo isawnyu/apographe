@@ -42,10 +42,12 @@ class Manager:
         try:
             self.apographe[place_key]
         except KeyError:
+            gplace.id = place_key
             self.apographe[place_key] = gplace
         else:
             i = len([k for k in self.apographe.keys() if k.startswith(place_key)])
             place_key = f"{place_key}-{i}"
+            gplace.id = place_key
             self.apographe[place_key] = gplace
         hit = {
             "place_key": place_key,
@@ -54,6 +56,33 @@ class Manager:
             "summary": gplace.descriptions.description_strings[0],
         }
         return hit
+
+    def change(self, place_id: str, **kwargs):
+        self.logger.debug(f"id: {id}")
+        self.logger.debug(pformat(kwargs, indent=4))
+        for k, v in kwargs.items():
+            try:
+                func = getattr(self, f"_change_{k}")
+            except AttributeError:
+                raise ValueError(
+                    f"Unsupported change command for field named '{k}' on place with id {id}."
+                )
+            else:
+                try:
+                    place = self.apographe[place_id]
+                except KeyError:
+                    raise ValueError(
+                        f"There is no place with id={place_id} in the internal gazetteer list."
+                    )
+                else:
+                    return func(place, v)
+
+    def _change_id(self, place: Place, new_id: str):
+        old = place.id
+        place.id = new_id
+        self.apographe.pop(old)
+        self.apographe[new_id] = place
+        return f"Changed id of place from {old} to {new_id}."
 
     def get_gazetteer(self, gazetteer_name):
         """Get gazetteer interface and query class using the gazetteer name."""
@@ -77,8 +106,10 @@ class Manager:
         """Get a place from the internal gazetteer."""
         try:
             place = self.apographe[place_key]
-        except ValueError:
-            raise ValueError(place_key)
+        except KeyError:
+            raise ValueError(
+                f"There is no place with id={place_key} in the internal gazetteer"
+            )
         return place
 
     def internal(self):
@@ -92,7 +123,7 @@ class Manager:
                     "place_key": place_key,
                     "title": place.properties.title,
                     "uri": place.uri,
-                    "summary": place.descriptions[0],
+                    "summary": place.descriptions.description_strings[0],
                 }
             )
         return hits

@@ -34,11 +34,13 @@ class UsageError(ValueError):
     def __init__(self, interp, cmd, msg, *args, **kwargs):
         raw = [cmd]
         if args:
-            raw.append(" ".join(*args))
+            raw.append(" ".join(args))
         if kwargs:
-            raw.append(" ".join([f"k:v" for k, v in kwargs.items()]))
+            raw.append(" ".join([f"{k}:{v}" for k, v in kwargs.items()]))
         raw = " ".join(raw)
-        self.message = f"'{raw}' is invalid usage for command '{cmd}' because {msg}.\nUsage:\n{self._usage(interp, cmd)}"
+        full_msg = f"'{raw}' is invalid usage for command '{cmd}' because {msg}.\nUsage:\n{self._usage(interp, cmd)}"
+        full_msg = full_msg.replace("..", ".")
+        self.message = full_msg
         self.raw = raw
         ValueError.__init__(self, self.message)
 
@@ -97,6 +99,27 @@ class Interpreter:
             ],
         )
 
+    def _cmd_change(self, *args, **kwargs):
+        """
+        Change the value of a field of a place in the internal gazetteer
+            > change {id} {fieldname}:{new value}
+            > change miliana id:zucchabar
+            > change miliana title:Zucchabar
+        """
+        if len(args) != 1 or not kwargs:
+            raise UsageError(
+                self,
+                "change",
+                (
+                    "Expected one positional argument (id of place to change) and at least one keyword "
+                    f"argument pair (target fieldname and new value), but got {len(args)} positional "
+                    f"arguments and {len(kwargs)} keyword arguments."
+                ),
+            )
+        self.logger.debug(f"args: {args}")
+        self.logger.debug(pformat(kwargs, indent=4))
+        return self.manager.change(place_id=args[0], **kwargs)
+
     def _cmd_full(self, *args, **kwargs):
         """
         Show full information about a place in the internal gazetteer.
@@ -114,7 +137,8 @@ class Interpreter:
                 self,
                 "full",
                 f"Expected one argument (the place key), but got {len(args)} positional arguments and {len(kwargs)} keyword arguments.",
-                args,
+                *args,
+                **kwargs,
             )
         try:
             place = self.manager.get_place(place_key)
@@ -122,7 +146,9 @@ class Interpreter:
             raise UsageError(
                 self,
                 "full",
-                f"The place key '{place_key}' is not in the internal gazetteer.",
+                f"the id '{place_key}' is not in the internal gazetteer.",
+                *args,
+                **kwargs,
             )
         return dumps(place, ensure_ascii=False, indent=4, sort_keys=True)
 
