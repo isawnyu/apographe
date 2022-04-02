@@ -16,6 +16,7 @@ from apographe.serialization import Serialization, ApographeEncoder
 from apographe.text import normtext
 from copy import deepcopy
 import geojson
+from hashlib import md5
 import json
 import logging
 from pathlib import Path
@@ -66,6 +67,140 @@ def load(fp):
     """Read a file"""
     loadd = json.load(fp)
     return loadd["features"]
+
+
+class Description(LanguageAware, Serialization):
+    def __init__(self, value: str = "", source: str = "", **kwargs):
+        LanguageAware.__init__(self, **kwargs)
+        Serialization.__init__(
+            self,
+            omit=["_name_key", "_language_subtag", "_script_subtag", "_region_subtag"],
+        )
+        self._description_key = None
+        self._value = ""
+        self._source = ""
+        if value:
+            self.value = value
+        if source:
+            self.source = source
+
+    def make_key(self):
+        if self._description_key:
+            return self._description_key
+        else:
+            return md5(self._value.encode("utf-8"))
+
+    @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, value: str):
+        v = normtext(value)
+        if v:
+            self._source = v
+
+    @source.deleter
+    def source(self):
+        self._source = ""
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value: str):
+        v = normtext(value)
+        if v:
+            self._value = v
+
+    @value.deleter
+    def value(self):
+        self._value = ""
+
+
+class DescriptionCollection(Serialization):
+    def __init__(self, descriptions=[], **kwargs):
+        Serialization.__init__(
+            self, omit=["_index"], promote="descriptions", refactor=list
+        )
+        self._descriptions = dict()
+        self._index = dict()
+        if descriptions:
+            self.descriptions = descriptions
+
+    @property
+    def description_strings(self):
+        strings = list()
+        for d in self.descriptions:
+            strings.append(d.value)
+        return list(strings)
+
+    @property
+    def descriptions(self):
+        return list(self._descriptions.values())
+
+    @descriptions.setter
+    def descriptions(self, values):
+        for description in values:
+            self.add_description(description)
+
+    @descriptions.deleter
+    def descriptions(self):
+        self._descriptions = dict()
+        self._index = dict()
+
+    def add_description(self, value):
+        if isinstance(value, Description):
+            description = value
+        elif isinstance(value, dict):
+            description = Description(**value)
+        elif isinstance(value, str):
+            description = Description(value=value)
+        else:
+            raise TypeError(f"Unexpected type for add_description: {type(value)}.")
+        description_key = description.make_key()
+        try:
+            self._descriptions[description_key]
+        except KeyError:
+            self._descriptions[description_key] = description
+        else:
+            i = len(
+                [k for k in self._descriptions.keys() if k.startswith(description_key)]
+            )
+            description_key = f"{description_key}-{str(i)}"
+            self._descriptions[description_key] = description
+        words = {slugify(w) for w in description.value.split()}
+        for word in words:
+            try:
+                self._index[word]
+            except KeyError:
+                self._index[word] = set()
+            self._index[word].add(description_key)
+
+    def get_descriptions(self, s: str):
+        slug = slugify(s)
+        try:
+            description_keys = self._index[slug]
+        except KeyError:
+            pass
+        else:
+            return [self._descriptions[k] for k in list(description_keys)]
+
+    def remove_description(self, description: Description):
+        if not isinstance(description, Description):
+            raise TypeError(f"Unexpected name type {type(description)}.")
+        description_key = description.make_key()
+        self._descriptions.pop(description_key)
+        index_keys = [k for k, v in self._index.items() if description_key in v]
+        for k in index_keys:
+            self._index[k].remove(description_key)
+
+    def __iter__(self):
+        return iter(self._descriptions.values())
+
+    def __len__(self):
+        return len(self._descriptions)
 
 
 class Name(LanguageAware, Serialization):
@@ -319,6 +454,7 @@ class Feature:
 
         self.properties = Properties(**kwargs)
         self.names = NameCollection(**kwargs)
+        self.descriptions = DescriptionCollection(**kwargs)
         try:
             geometries = kwargs["geometries"]
         except KeyError:

@@ -113,6 +113,18 @@ class Pleiades(BackendWeb, Gazetteer):
         for k in copy_keys:
             kwargs[k] = data[k]
         kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]
+        kwargs["descriptions"] = [
+            {
+                "value": data["description"],
+                "language_tag": "en",
+                "id": f"{data['uri']}#description",
+            },
+            {
+                "value": data["details"],
+                "language_tag": "en",
+                "id": f"{data['uri']}#details",
+            },
+        ]
         kwargs["geometries"] = [
             self._kwargs_from_json_geometry(l["geometry"]) for l in data["locations"]
         ]

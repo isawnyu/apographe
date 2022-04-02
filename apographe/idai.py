@@ -120,7 +120,31 @@ class IDAI(BackendWeb, Gazetteer):
         names.extend([self._kwargs_from_json_name(n) for n in data["names"]])
         kwargs["names"] = self._dedupe_names(names)
         kwargs["geometries"] = [self._kwargs_from_json_geometry(data["prefLocation"])]
-        logger.debug(pformat(kwargs, indent=4))
+
+        desc = ""
+        ancient_names = "/".join(
+            sorted(
+                [
+                    n
+                    for n in [na for na in data["names"] if "ancient" in data.keys()]
+                    if n["ancient"]
+                ]
+            )
+        )
+        if ancient_names and ancient_names != data["prefName"]["title"]:
+            desc = "Ancient name"
+            if "/" in ancient_names:
+                desc += "s"
+            desc += f": {ancient_names}"
+        if desc:
+            desc += "("
+        place_types = "; ".join(sorted([pt.replace("-", " ") for pt in data["types"]]))
+        desc += place_types
+        if "(" in desc:
+            desc += ")"
+        kwargs["descriptions"] = [
+            {"value": desc, "lang_code": "en", "id": f"{data['@id']}"}
+        ]
         return kwargs
 
     def _kwargs_from_json_geometry(self, geometry):

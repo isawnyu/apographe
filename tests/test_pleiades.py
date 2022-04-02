@@ -274,6 +274,7 @@ class TestPleiadesSerialization:
             "properties",
             "names",
             "geometry",
+            "descriptions",
         }
         assert isinstance(d["id_internal"], str)
         assert d["id"] == "295374"
@@ -297,6 +298,7 @@ class TestPleiadesSerialization:
                         name["language_tag"] == "grc"
                     )  # pleiades assumes grc == grc-Grek even though IANA doesn't
                     assert set(name["romanizations"]) == {"Zouchábbari", "Zouchabbari"}
+
         assert isinstance(d["geometry"], dict)
         shape = shapely_shape(d["geometry"])
         assert isinstance(shape, GeometryCollection)
@@ -305,3 +307,9 @@ class TestPleiadesSerialization:
         for geometry in geometries:
             shape = shapely_shape(geometry)
             assert isinstance(shape, Point)
+
+        assert len(d["descriptions"]) == 2
+        for desc in d["descriptions"]:
+            assert desc["value"].startswith("Zucchabar was an ancient city of") or desc[
+                "value"
+            ].startswith("<p>The Barrington Atlas")

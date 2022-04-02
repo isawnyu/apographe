@@ -38,13 +38,20 @@ class Manager:
         """Collect a place from a gazetteer and convert/copy it to the local list of places"""
         gazetteer_interface, gazetteer_query_class = self.get_gazetteer(gazetteer_name)
         gplace = gazetteer_interface.get(place_id)
-        place_key = f"{gazetteer_name}:{place_id}"
-        self.apographe[place_key] = gplace
+        place_key = slugify(gplace.properties.title)
+        try:
+            self.apographe[place_key]
+        except KeyError:
+            self.apographe[place_key] = gplace
+        else:
+            i = len([k for k in self.apographe.keys() if k.startswith(place_key)])
+            place_key = f"{place_key}-{i}"
+            self.apographe[place_key] = gplace
         hit = {
             "place_key": place_key,
             "title": gplace.properties.title,
             "uri": gplace.uri,
-            "summary": "NotImplemented",
+            "summary": gplace.descriptions.description_strings[0],
         }
         return hit
 
@@ -85,7 +92,7 @@ class Manager:
                     "place_key": place_key,
                     "title": place.properties.title,
                     "uri": place.uri,
-                    "summary": "NotImplemented",
+                    "summary": place.descriptions[0],
                 }
             )
         return hits
