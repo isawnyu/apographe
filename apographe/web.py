@@ -18,7 +18,7 @@ import validators
 from webiquette.webi import Webi, DEFAULT_HEADERS
 
 DEFAULT_SCHEME = "https"
-DEFAULT_USER_AGENT = "apographe/0.0.1 (+https://github.com/isawnyu/apographe)"
+DEFAULT_USER_AGENT = "Apographe/0.0.1 (+https://github.com/isawnyu/apographe)"
 
 logger = logging.getLogger("apographe.web")
 

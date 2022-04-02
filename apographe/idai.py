@@ -41,6 +41,13 @@ class IDAI(BackendWeb, Gazetteer):
 
     def __init__(self):
         Gazetteer.__init__(self, name="iDAI")
+        # NB: iDAI sets the following response headers
+        # Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+        # Expires: 0
+        # but we want better performance on repeated calls in a session, so
+        # we tell requests-cache (through webiquette) to:
+        # 1. ignore the Cache-Control response header (cache_control = False)
+        # 2. set a per-session expiration time of 6 hours in seconds (expire_after = 21600)
         kwargs = {
             "place_netloc": "gazetteer.dainst.org",
             "place_scheme": "https",
@@ -49,8 +56,8 @@ class IDAI(BackendWeb, Gazetteer):
             "search_netloc": "gazetteer.dainst.org",
             "search_scheme": "https",
             "search_path": "search.json",
-            "user_agent": "ApographeTester/0.0.1 (+https://github.org/isawnyu/apographe)",
             "cache_control": False,
+            "expire_after": 21600,
         }
         BackendWeb.__init__(self, **kwargs)
 

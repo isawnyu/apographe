@@ -76,6 +76,18 @@ class Pleiades(BackendWeb, Gazetteer):
 
     def __init__(self):
         Gazetteer.__init__(self, name="Pleiades")
+        # NB: Pleiades sets the following response headers:
+        # cache-control: max-age=0, s-maxage=86400, must-revalidate
+        # expires: (a date-time apparently 24 hours in future)
+        # cache-control:max-age=0 and expires are in conflict and
+        # code analysis of requests-cache on 2 April 2022 indicates
+        # that, if use of cache-control response headers is enabled,
+        # requests-cache will give priority to cache-control:max-age
+        # over "expires". Since there is a "must-revalidate" directive,
+        # it will check the server for a change. This seems to be
+        # working ok (repeated requests in a given session are fast),
+        # so we will let webiquette defaults obtain (i.e., enable
+        # cache-control response headers in requests-cache).
         kwargs = {
             "place_netloc": "pleiades.stoa.org",
             "place_scheme": "https",
@@ -84,7 +96,6 @@ class Pleiades(BackendWeb, Gazetteer):
             "search_netloc": "pleiades.stoa.org",
             "search_scheme": "https",
             "search_path": "/search_rss",
-            "user_agent": "ApographeTester/0.0.1 (+https://github.org/isawnyu/apographe)",
         }
         BackendWeb.__init__(self, **kwargs)
 
