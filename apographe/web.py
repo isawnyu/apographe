@@ -69,11 +69,11 @@ class BackendWeb(Backend):
             pass
         if not ua:
             ua = DEFAULT_USER_AGENT
-        if ua == DEFAULT_USER_AGENT:
-            logger.warning(
-                f'Using default HTTP Request header for User-Agent = "{ua}". '
-                "We strongly prefer you define your own unique user-agent string."
-            )
+        # if ua == DEFAULT_USER_AGENT:
+        #     logger.warning(
+        #         f'Using default HTTP Request header for User-Agent = "{ua}". '
+        #         "We strongly prefer you define your own unique user-agent string."
+        #     )
         web_config["user_agent"] = ua
         place_headers["User-Agent"] = ua
         try:
