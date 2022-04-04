@@ -197,14 +197,17 @@ class Manager:
             raise NotImplementedError(mode)
         elif mode == "each" and dirpath and not filename:
             # save each place to a separate LPF file
+            i = 0
             for place_key, place in self.apographe.items():
                 slug = slugify(place_key)
                 filename = f"{slug}.json"
                 self.logger.debug(f"saving {str(dirpath / filename)}.")
+                self.logger.debug(filename)
                 with open(dirpath / filename, "w", encoding="utf-8") as fp:
                     dump(place, fp, ensure_ascii=False, indent=4, sort_keys=True)
                 del fp
-                return f"Wrote {len(self.apographe)} files to {str(path)}."
+                i += 1
+            return f"Wrote {i} files for {len(self.apographe)} places to {str(path)}."
         elif mode and dirpath and filename:
             # save individual to a single file
             raise NotImplementedError()
