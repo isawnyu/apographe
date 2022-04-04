@@ -24,7 +24,7 @@ class PleiadesQuery(Query):
     def __init__(self):
         Query.__init__(self)
         self._supported_parameters = {
-            "bbox": {"expected": (tuple), "behavior": self._preprocess_bbox},
+            "bbox": {"expected": (tuple, str), "behavior": self._preprocess_bbox},
             "description": {
                 "expected": (str, list),
                 "list_behavior": "join",
@@ -56,13 +56,17 @@ class PleiadesQuery(Query):
             "review_state:list": "published",
         }
 
-    def _preprocess_bbox(self, bounds: tuple):
+    def _preprocess_bbox(self, bounds):
         """Shave a small amount off the bounding box to keep Pleiades from expanding the search area."""
+        if isinstance(bounds, str):
+            these_bounds = [float(s) for s in bounds.split(",")]
+        elif isinstance(bounds, (list, tuple)):
+            these_bounds = bounds
         shaved_bounds = list()  # pleiades is weird
         for i in [0, 1]:
-            shaved_bounds.append(bounds[i] + 0.0001)
+            shaved_bounds.append(these_bounds[i] + 0.0001)
         for i in [2, 3]:
-            shaved_bounds.append(bounds[i] - 0.0001)
+            shaved_bounds.append(these_bounds[i] - 0.0001)
         return {
             "lowerLeft": f"{shaved_bounds[0]},{shaved_bounds[1]}",
             "upperRight": f"{shaved_bounds[2]},{shaved_bounds[3]}",
