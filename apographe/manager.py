@@ -31,6 +31,7 @@ class Manager:
             "idai": (IDAI, IDAIQuery),
             "pleiades": (Pleiades, PleiadesQuery),
         }
+        self.imports = dict()  # imported data
         self._search_results = dict()  # keep track of all search results this session
         self.logger = logging.getLogger(self.__class__.__name__)
 
@@ -111,6 +112,23 @@ class Manager:
                 f"There is no place with id={place_key} in the internal gazetteer"
             )
         return place
+
+    def import_file(self, path: str, filetype: str, encoding="utf-8"):
+        """Import a file for further processing."""
+        filepath = Path(path)
+        filepath = filepath.expanduser().resolve()
+        if filetype == "text":
+            with open(filepath, "r", encoding=encoding) as fp:
+                data = fp.read()
+            del fp
+            if "\n" in data:
+                data = data.split("\n")
+            filename = filepath.name.split(".")[0]
+            slug = slugify(filename)
+            self.imports[slug] = "data"
+        else:
+            raise NotImplementedError(f"Cannot import {path} (filetype: {filetype}).")
+        return f"Imported {filetype} file {filepath} and stored data as imports:{slug}."
 
     def internal(self):
         """List all places in the internal gazetteer."""

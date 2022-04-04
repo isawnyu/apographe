@@ -182,6 +182,30 @@ class Interpreter:
         )
         return table
 
+    def _cmd_import(self, *args, **kwargs):
+        if len(args) != 1 or len(kwargs) != 1:
+            raise UsageError(
+                self,
+                "import",
+                f"Expected one argument (file path) and one keyword argument (filetype:) specifying the type of file, "
+                f"but got {len(args)} arguments and {len(kwargs)} keyword arguments.",
+                *args,
+                **kwargs,
+            )
+        try:
+            kwargs["filetype"]
+        except KeyError:
+            raise UsageError(
+                self,
+                "import",
+                "Expected a keyword argument 'filetype' indicating the type of file, but "
+                f"got {pformat(list(kwargs.keys()))}",
+                *args,
+                **kwargs,
+            )
+        filepath = args[0]
+        return self.manager.import_file(filepath, **kwargs)
+
     def _cmd_internal(self, *args, **kwargs):
         """
         List all places in the internal gazetteer.
