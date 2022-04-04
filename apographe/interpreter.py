@@ -87,7 +87,10 @@ class Interpreter:
                 f"Expected two arguments, but got {len(args)}",
                 args,
             )
-        hit = self.manager.accession(*args)
+        try:
+            hit = self.manager.accession(*args)
+        except RuntimeError as err:
+            return str(err)
         return self._rich_table(
             title="Accessioned place",
             columns=(("place key", {}), ("place", {})),

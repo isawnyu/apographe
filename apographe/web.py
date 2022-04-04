@@ -13,6 +13,7 @@ from apographe.backend import Backend
 from apographe.text import normtext
 from copy import deepcopy
 import logging
+from requests.exceptions import HTTPError
 from urllib.parse import urlencode, urlunparse
 import validators
 from webiquette.webi import Webi, DEFAULT_HEADERS
@@ -147,7 +148,21 @@ class BackendWeb(Backend):
                 "",
             )
         )
-        return config["place_interface"].get(uri)
+        try:
+            return config["place_interface"].get(uri)
+        except HTTPError as err:
+            status_code = err.response.status_code
+            if status_code == 404:
+                raise RuntimeError(
+                    f"HTTP Error: 404 (Not Found) for {uri}. Please check the place ID {id} and try again."
+                )
+            logger = logging.getLogger("Life is pain")
+            from pprint import pformat
+
+            logger.error(pformat(dir(err), indent=4))
+            logger.error(f"{err.errno}: {type(err.errno)}")
+            logger.error(f"status_code: {err.response.status_code}")
+            raise
 
     def _web_search(self, query: str):
         """Issue the search"""
