@@ -27,6 +27,7 @@ class IDAIQuery(Query):
     def __init__(self):
         Query.__init__(self)
         self._supported_parameters = {
+            "bbox": {"expected": (tuple, str), "behavior": self._preprocess_bbox},
             "text": {
                 "expected": (str, list),
                 "list_behavior": "join",
