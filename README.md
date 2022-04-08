@@ -47,16 +47,24 @@ Supported gazetteers
 └──────────┴───────────────────────────────────────────────────────┘
 type 'help' for a list of commands
 > help
-Supported Commands                                                                        
+Supported commands                                                                        
 ┏━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
 ┃ Command    ┃ Description                                                               ┃
 ┡━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
 │ accession  │ Collect a place from a gazetteer and convert/copy it to the internal      │
 │            │ gazetteer.                                                                │
+│ align      │ Attempt to align one or more items in the internal gazetteer with items   │
+│            │ in an external gazetteer.                                                 │
+│ change     │ Change the value of a field of a place in the internal gazetteer          │
 │ full       │ Show full information about a place in the internal gazetteer.            │
 │ gazetteers │ List supported gazetteers.                                                │
 │ help       │ List available commands or get help with using an individual command.     │
+│ import     │ Import a file for subsequent use.                                         │
+│ imports    │ List contents of imported data.                                           │
+│ internal   │ List all places in the internal gazetteer.                                │
+│ load       │ Load LPF JSON files on the local filesystem into the internal gazetteer.  │
 │ quit       │ Quit the program.                                                         │
+│ save       │ Save the contents of the internal gazetteer to the local filesystem.      │
 │ search     │ Search a gazetteer.                                                       │
 └────────────┴───────────────────────────────────────────────────────────────────────────┘
 > search pleiades zucchabar
@@ -80,7 +88,161 @@ Accessioned place
 │                 │ https://pleiades.stoa.org/places/295374 │
 │                 │ NotImplemented                          │
 └─────────────────┴─────────────────────────────────────────┘
-> 
+> import ~/scratch/pids.txt
+Imported txt file /Users/paregorios/scratch/pids.txt and stored data as imports:pids.
+> imports
+pids
+> imports pids
+[
+    '216744',
+    '217016',
+    '220489',
+    '229670928',
+    '266004',
+    '297163719',
+    '412998',
+    '413010',
+    '413025',
+    '413103',
+    '413133',
+    '413383',
+    '422843',
+    '423060',
+    '438775',
+    '580782181',
+    '599664',
+    '668331',
+    '678160',
+    '711164401',
+    '776189',
+    '830595307',
+    '912803',
+    '912841',
+    '912851'
+]
+> accession pleiades imports:pids
+Accessioned place                                                                                             
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ place key                                ┃ place                                                           ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ callatis                                 │ Callatis                                                        │
+│                                          │ https://pleiades.stoa.org/places/216744                         │
+│                                          │ A Greek colony and port on the west coast of the Black Sea,     │
+│                                          │ modern Mangalia in Romania.                                     │
+│ tomis                                    │ Tomis                                                           │
+│                                          │ https://pleiades.stoa.org/places/217016                         │
+│                                          │ Tomis was founded as a Greek colony on the Black Sea coast ca.  │
+│                                          │ 600 B.C.                                                        │
+│ unnamed-road-sequence-deultum-to-argamum │ Unnamed road sequence: Deultum to Argamum                       │
+│                                          │ https://pleiades.stoa.org/places/220489                         │
+│                                          │ Deultum → Anchialus → Odessus → Dionysopolis → Tirizis →        │
+│                                          │ Callatis → Tomis → Histria → Argamum → E                        │
+│ via-ciminia                              │ Via Ciminia                                                     │
+│                                          │ https://pleiades.stoa.org/places/229670928                      │
+│                                          │ The Via Ciminia was a Roman road that left the Via Cassia and   │
+│                                          │ continued toward the Ciminian hills. Its course likely ran from │
+│                                          │ Sutrium to near Viterbo.                                        │
+│ pollentia                                │ Pollentia                                                       │
+│                                          │ https://pleiades.stoa.org/places/266004                         │
+│                                          │ An ancient place, cited: BAtlas 27 inset Pollentia              │
+│ temple-of-mater-matuta-at-satricum       │ Temple of Mater Matuta at Satricum                              │
+│                                          │ https://pleiades.stoa.org/places/297163719                      │
+│                                          │ A sanctuary dedicated to Mater Matuta that was in use between   │
+│                                          │ the seventh and fifth centuries B.C.                            │
+│ ad-vicesimum                             │ Ad Vicesimum                                                    │
+│                                          │ https://pleiades.stoa.org/places/412998                         │
+│                                          │ An ancient place, cited: BAtlas 42 C4 Ad Vicesimum              │
+│ alsietinus-lacus                         │ Alsietinus lacus                                                │
+│                                          │ https://pleiades.stoa.org/places/413010                         │
+│                                          │ The Alsietinus lacus, modern Lago di Martignano, is a small     │
+│                                          │ volcanic crater-lake in southern Etruria. The lake was the      │
+│                                          │ source of the Augustan aqueduct aqua Augusta Alsietina that     │
+│                                          │ served non-potable water to the Transtiberim and Ianiculum.     │
+│ aquae-passeris                           │ Aquae Passeris                                                  │
+│                                          │ https://pleiades.stoa.org/places/413025                         │
+│                                          │ An ancient place, cited: BAtlas 42 C4 Aquae Passeris            │
+│ corchiano                                │ Corchiano                                                       │
+│                                          │ https://pleiades.stoa.org/places/413103                         │
+│                                          │ Corchiano was the site of a wealthy settlement in the Ager      │
+│                                          │ Faliscus that was in proximity to the Via Amerina.              │
+│ fescennium                               │ Fescennium                                                      │
+│                                          │ https://pleiades.stoa.org/places/413133                         │
+│                                          │ Fescennium (modern Narce) was a Faliscan settlement located ca. │
+│                                          │ 5 km south of Falerii Veteres.                                  │
+│ vignanello                               │ Vignanello                                                      │
+│                                          │ https://pleiades.stoa.org/places/413383                         │
+│                                          │ An ancient place, cited: BAtlas 42 C4 Vignanello                │
+│ ardea                                    │ Ardea                                                           │
+│                                          │ https://pleiades.stoa.org/places/422843                         │
+│                                          │ Ardea was an ancient settlement of the Rutuli in Latium.        │
+│ satricum                                 │ Satricum                                                        │
+│                                          │ https://pleiades.stoa.org/places/423060                         │
+│                                          │ An ancient settlement on the right bank of the river Astura,    │
+│                                          │ Satricum has a mixed heritage of Latins and Volscians. In 499   │
+│                                          │ B.C. Satricum was a member of the Latin League, but was under   │
+│                                          │ Volscian control in 488 B.C. The site is noted for its          │
+│                                          │ sanctuary of Mater Matuta.                                      │
+│ longula                                  │ Longula                                                         │
+│                                          │ https://pleiades.stoa.org/places/438775                         │
+│                                          │ Longula was an early settlement of Latium Vetus, although its   │
+│                                          │ location is no longer known. A Volscian city, Longula was first │
+│                                          │ taken by the Romans in 493 B.C. under the consul Postumus       │
+│                                          │ Cominius. It subsequently changes hands several times during    │
+│                                          │ the fifth and fourth centuries B.C. It likely lay between Ardea │
+│                                          │ and Antium.                                                     │
+│ villa-romana-balaca                      │ Villa Romana Baláca                                             │
+│                                          │ https://pleiades.stoa.org/places/580782181                      │
+│                                          │ The site of a Roman villa that was discovered in 1904 in the    │
+│                                          │ Balácapuszta field of Vámos village in western Hungary.         │
+│ iasos                                    │ Iasos                                                           │
+│                                          │ https://pleiades.stoa.org/places/599664                         │
+│                                          │ Iasos was an ancient Greek city in Caria.                       │
+│ palmyra                                  │ Palmyra                                                         │
+│                                          │ https://pleiades.stoa.org/places/668331                         │
+│                                          │ An ancient oasis and trading city with monumental remains,      │
+│                                          │ located in modern Syria. Under Zenobia, Palmyra was the capital │
+│                                          │ of the breakaway Palmyrene Empire, leading to Aurelian's razing │
+│                                          │ of the city. Inscribed as a UNESCO World Heritage Site in 1980. │
+│ gerra                                    │ Gerra                                                           │
+│                                          │ https://pleiades.stoa.org/places/678160                         │
+│                                          │ Gerra (modern Anjar, Lebanon) was a stronghold built under the  │
+│                                          │ Umayyad Caliph Al-Walid ibn Abdel Malek in the eighth century   │
+│                                          │ AD. It was listed as a UNESCO World Heritage Site in 1984.      │
+│ tomb-of-the-ottavii                      │ Tomb of the Ottavii                                             │
+│                                          │ https://pleiades.stoa.org/places/711164401                      │
+│                                          │ A mid-third century AD hypogeum tomb.                           │
+│ kellis                                   │ Kellis                                                          │
+│                                          │ https://pleiades.stoa.org/places/776189                         │
+│                                          │ Roman/late antique settlement, with substantial remains of      │
+│                                          │ public religious buildings, including a large temple,           │
+│                                          │ residential areas, tombs, and three churches.                   │
+│ gallese                                  │ Gallese                                                         │
+│                                          │ https://pleiades.stoa.org/places/830595307                      │
+│                                          │ Gallese is a settlement located about 14 km north of Civita     │
+│                                          │ Castellana. It was active especially in Faliscan times and      │
+│                                          │ again during late antiquity and the middle ages.                │
+│ al-qusur                                 │ al-Qusur                                                        │
+│                                          │ https://pleiades.stoa.org/places/912803                         │
+│                                          │ An ancient place, cited: BAtlas 93 E4 al-Qusur                  │
+│ e-kara-icarus-island                     │ E-kara/Icarus (island)                                          │
+│                                          │ https://pleiades.stoa.org/places/912841                         │
+│                                          │ Failaka Island in the Persian Gulf.                             │
+│ failaka-tell-khazne                      │ Failaka/Tell Khazne                                             │
+│                                          │ https://pleiades.stoa.org/places/912851                         │
+│                                          │ An ancient place, cited: BAtlas 93 E4 Failaka/Tell Khazne       │
+└──────────────────────────────────────────┴─────────────────────────────────────────────────────────────────┘
+> align pleiades gallese
+alignment results                                                                                             
+┏━━━━━━━━━━━━━┳━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃ Internal ID ┃ Gazetteer ID ┃ Summary                                                                       ┃
+┡━━━━━━━━━━━━━╇━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│ gallese     │ 830595307    │ Gallese                                                                       │
+│             │              │ https://pleiades.stoa.org/places/830595307                                    │
+│             │              │ Gallese is a settlement located about 14 km north of Civita Castellana. It    │
+│             │              │ was active especially in Faliscan times and again during late antiquity and   │
+│             │              │ the middle ages.                                                              │
+└─────────────┴──────────────┴───────────────────────────────────────────────────────────────────────────────┘
+>
 ```
 
 
@@ -209,99 +371,4 @@ Python 3.10.2 (main, Jan 28 2022, 15:08:24) [Clang 13.0.0 (clang-1300.0.29.30)] 
 
 # Roadmap
 
-- [x] add search functionality to pleiades web backend
-    - [x] title
-    - [x] text
-    - [x] feature_type
-    - [x] tag
-    - [x] bbox
-    - [ ] author
-    - [ ] contributor
-    - [ ] provenance
-    - [ ] cites
-    - [ ] new since
-- [ ] add web backends and baseline search for other gazetteers
-    - [ ] EDH
-    - [x] iDAI
-    - [ ] CHGIS
-    - [ ] WHG
-    - [ ] OpenStreetMap
-- [ ] add basic filesystem backend, and then implement pleiades filesystem backend
-- [ ] elaborate Place data model mimicking Linked Places Format (mark done when full conformance)
-    - [x] id (uri)
-    - [x] properties (dict)
-        - [x] title (str)
-        - [x] *ccodes (list)
-    - [ ] ?when (dict)
-        - [ ] timespans (list)
-            - [ ] +(timespan: dict)
-                - [ ] start
-                    - [ ] ?in
-                    - [ ] ?earliest
-                    - [ ] ?latest
-                - [ ] ?end
-                    - [ ] as for "start", above
-        - [ ] ?periods (list)
-            - [ ] (period: dict)
-                - [ ] name (str)
-                - [ ] uri (uri)
-        - [ ] ?duration (str)
-    - [x] names (list)
-        - [x] +(name: dict)  # deviation? Pleiades has unnamed places
-            - [x] toponym (str)
-            - [x] language_code "lang" (str)
-            - [ ] citations (dict)
-            - [ ] *when: see further above
-    - [ ] ?types (list)
-        - [ ] (type: dict)
-            - [ ] identifier (str)
-            - [ ] label (str)
-            - [ ] ?sourceLabels (list)
-                - [ ] (source label: dict)
-                    - [ ] label (str)
-                    - [ ] language code "lang" (str)
-            - [ ] ?when
-    - [x] geometry (dict): one of geojson.GeometryCollection, Point, etc. or null if no geometry
-        - individual geometries can also have (in addition to geojson spec):
-            - [ ] ?when
-            - [ ] ?certainty (str: certain, less-certain, uncertain)
-    - [ ] ?links (list)
-        - [ ] (link: dict)
-            - [ ] type (str)
-            - [ ] identifier (uri)
-    - [ ] ?relations (list)
-        - [ ] (relation: dict)
-            - [ ] relationType (uri)
-            - [ ] relationTo (uri)
-            - [ ] label (str)
-            - [ ] ?when: see further above
-            - [ ] citations: see further above
-            - [ ] certainty (str)
-    - [ ] ?descriptions (list)
-        - [ ] (description: dict)
-            - [ ] id (uri)
-            - [ ] value (str)
-            - [ ] language_code "lang" (str)
-    - [ ] ?depictions (list)
-        - [ ] (depiction: dict)
-            - [ ] id (uri)
-            - [ ] title (str)
-            - [ ] license (uri)
-- [ ] extend Place data model to provide lossless recording of Pleiades data
-- [ ] create, save, load, export a place collection
-    - [ ] create entries by accessioning from search
-    - [ ] save (jsonpickle)
-    - [ ] load (jsonpickle)
-    - [ ] export
-        - [x] LPF GEOJSON
-            - [ ] option to write multi-part geometries as convex polygons
-- [ ] create scripts for various tasks from the commandline
-
-## Search capabilities
-
-Blank cells indicate possible, but not yet implemented, options.
-
-| gazetteer | title | text | feature type | tag | bbox |
-| --- | :---: | :---: | :---: | :---: | :---: |
-| idai | | yes | | n/a | |
-| pleiades | yes | yes | yes | yes | yes |
+See now the github issue tracker at: https://github.com/isawnyu/apographe/issues
