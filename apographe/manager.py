@@ -8,7 +8,9 @@
 """
 Manage higher-level operations for an API
 """
+from unicodedata import name
 from apographe.gazetteer import Gazetteer
+from apographe.geo import bubble
 from apographe.idai import IDAI, IDAIQuery
 from apographe.linked_places_format import dump, load
 from apographe.place import Place
@@ -18,6 +20,8 @@ from inspect import getdoc
 import logging
 from pathlib import Path, PurePath
 from pprint import pformat
+import regex
+from shapely.ops import unary_union
 from slugify import slugify
 from sys import platform
 
@@ -72,6 +76,92 @@ class Manager:
             }
             hits.append(hit)
         return hits
+
+    def align(self, *args, **kwargs):
+        """Attempt to align one or more items in the internal gazetteer with items in an external gazetteer."""
+        gazetteer_name = args[0]
+        if len(args) == 2:
+            internal_candidates = [self.apographe[args[1]]]
+        else:
+            internal_candidates = list(self.apographe.values())
+        try:
+            name_mode = kwargs["names"]
+        except KeyError:
+            name_mode = "exact"
+        self.logger.debug(f"name_mode: {name_mode}")
+        if name_mode not in ["exact", "none"]:
+            raise NotImplementedError(f"name_mode = {name_mode} is not supported")
+        try:
+            proximity = int(kwargs["proximity"])
+        except KeyError:
+            proximity = None
+        solid_hits = dict()
+        for internal_candidate in internal_candidates:
+
+            # spatial candidates
+            hull = internal_candidate.geometry.convex_hull
+            if proximity:
+                bub = bubble(hull, buffer_distance=proximity)
+            else:
+                bub = bubble(hull, radius_multiplier=2, radius_minimum=5000)
+            bbox = bub.bounds
+            self.logger.debug(f"bbox: {bbox}")
+            spatial_hits = self.search(gazetteer_name, bbox=bbox)
+            self.logger.debug(pformat(spatial_hits, indent=4))
+
+            # name matches among the spatial candidates
+            if name_mode != "none":
+                self.logger.debug(f"name_mode: {name_mode}")
+                internal_names = internal_candidate.names.name_strings
+                internal_names.append(internal_candidate.properties.title)
+                internal_names = [
+                    regex.sub("[^\p{Letter}]+", "", name_string).lower()
+                    for name_string in internal_names
+                ]
+                self.logger.debug(f"internal_names: {internal_names}")
+                if internal_names:
+                    gazetteer_interface, gazetteer_query_class = self.get_gazetteer(
+                        gazetteer_name
+                    )
+                    spatial_places = {
+                        h["id"]: gazetteer_interface.get(h["id"]) for h in spatial_hits
+                    }
+                    self.logger.debug(f"spatial_places: {len(spatial_places)}")
+                    spatial_name_index = dict()
+                    for pid, place in spatial_places.items():
+                        names = place.names.name_strings
+                        names.append(place.properties.title)
+                        for name_string in set(names):
+                            name_slug = regex.sub(
+                                "[^\p{Letter}]+", "", name_string
+                            ).lower()
+                            try:
+                                spatial_name_index[name_slug]
+                            except KeyError:
+                                spatial_name_index[name_slug] = set()
+                            finally:
+                                spatial_name_index[name_slug].add(pid)
+                    self.logger.debug(
+                        f"spatial_name_index:\n{pformat(spatial_name_index, indent=4)}"
+                    )
+                    possible_matches = set()
+                    for internal_name in internal_names:
+                        try:
+                            external_pids = spatial_name_index[internal_name]
+                        except KeyError:
+                            pass
+                        else:
+                            possible_matches.update(external_pids)
+                        self.logger.debug(
+                            f"possible_matches after internal_name={internal_name}: {possible_matches}"
+                        )
+                    solid_hits[internal_candidate.id] = [
+                        h for h in spatial_hits if h["id"] in possible_matches
+                    ]
+            else:
+                solid_hits[internal_candidate.id] = spatial_hits
+            self.logger.debug(f"solid_hits:\n{pformat(solid_hits, indent=4)}")
+        return solid_hits
 
     def change(self, place_id: str, **kwargs):
         self.logger.debug(f"id: {id}")

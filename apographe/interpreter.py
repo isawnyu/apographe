@@ -113,6 +113,43 @@ class Interpreter:
             ],
         )
 
+    def _cmd_align(self, *args, **kwargs):
+        """
+        Attempt to align one or more items in the internal gazetteer with items in an external gazetteer.
+            > align {gazetteer name} {internal place id}
+            > align {gazetteer name}
+            > align {gazetteer name} {internal place id} names:{"exact" | "similar" | "none" }
+              defaults to "exact"
+            > align {gazetteer name} {internal place id} proximity:{positive integer meters | "none" }
+              defaults to 2 x the geometric footprint of the internal place or 5k, whichever is larger
+        """
+        if not (0 < len(args) < 3):
+            raise UsageError(
+                self,
+                "align",
+                f"Expected one or two positional arguments (gazetteer name and internal id) and up to two keyword arguments ('names' and 'proximity'), "
+                f"but got {len(args)} arguments.",
+                *args,
+                **kwargs,
+            )
+        hits = self.manager.align(*args, **kwargs)
+        rows = list()
+        self.logger.error(pformat(hits, indent=4))
+        for internal_id in sorted(list(hits.keys())):
+            for h in hits[internal_id]:
+                rows.append(
+                    (
+                        f"[bold]{internal_id}[/bold]",
+                        f"[bold]{h['id']}[/bold]",
+                        f"[bold]{h['title']}[/bold]\n{h['uri']}\n{h['summary']}",
+                    )
+                )
+        return self._rich_table(
+            title=f"alignment results",
+            columns=(("Internal ID", {}), ("Gazetteer ID", {}), ("Summary", {})),
+            rows=rows,
+        )
+
     def _cmd_change(self, *args, **kwargs):
         """
         Change the value of a field of a place in the internal gazetteer
