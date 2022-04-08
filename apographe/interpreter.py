@@ -79,16 +79,26 @@ class Interpreter:
         """
         Collect a place from a gazetteer and convert/copy it to the internal gazetteer.
             > accession pleiades 295374
+            > accession imports:pids
+              (accession all items in previously imported dataset "pids" - see "import")
         """
-        if len(args) != 2:
+        logger = logging.getLogger()
+        logger.debug(pformat(args, indent=4))
+        logger.debug(pformat(kwargs, indent=4))
+        if len(args) == 2 and len(kwargs) == 0:
+            pass
+        elif len(args) == 1 and len(kwargs) == 1:
+            pass
+        else:
             raise UsageError(
                 self,
                 "accession",
-                f"Expected two arguments, but got {len(args)}",
-                args,
+                f"unexpected arguments",
+                *args,
+                **kwargs,
             )
         try:
-            hit = self.manager.accession(*args)
+            hits = self.manager.accession(*args, **kwargs)
         except RuntimeError as err:
             return str(err)
         return self._rich_table(
@@ -96,9 +106,10 @@ class Interpreter:
             columns=(("place key", {}), ("place", {})),
             rows=[
                 (
-                    f"[bold]{hit['place_key']}[/bold]",
-                    f"[bold]{hit['title']}[/bold]\n{hit['uri']}\n{hit['summary']}",
+                    f"[bold]{h['id']}[/bold]",
+                    f"[bold]{h['title']}[/bold]\n{h['uri']}\n{h['summary']}",
                 )
+                for h in hits
             ],
         )
 
@@ -156,7 +167,10 @@ class Interpreter:
         return dumps(place, ensure_ascii=False, indent=4, sort_keys=True)
 
     def _cmd_gazetteers(self, *args, **kwargs):
-        """List supported gazetteers."""
+        """
+        List supported gazetteers.
+            > gazetteers
+        """
         return self._rich_table(
             title="Supported gazetteers",
             columns=(("name", {}), ("description", {})),
@@ -183,32 +197,51 @@ class Interpreter:
         return table
 
     def _cmd_import(self, *args, **kwargs):
-        if len(args) != 1 or len(kwargs) != 1:
+        """
+        Import a file for subsequent use.
+            > import {filepath} [{filetype} {encoding}]
+            > import foo/bar/pids.txt
+            > import foo/bar/pids.dat txt utf-8
+        """
+        if not (0 < len(args) < 4):
             raise UsageError(
                 self,
                 "import",
-                f"Expected one argument (file path) and one keyword argument (filetype:) specifying the type of file, "
-                f"but got {len(args)} arguments and {len(kwargs)} keyword arguments.",
+                f"Expected one argument (file path) and two optional arguments (file type, encoding), "
+                f"but got {len(args)} arguments.",
                 *args,
                 **kwargs,
             )
-        try:
-            kwargs["filetype"]
-        except KeyError:
-            raise UsageError(
-                self,
-                "import",
-                "Expected a keyword argument 'filetype' indicating the type of file, but "
-                f"got {pformat(list(kwargs.keys()))}",
-                *args,
-                **kwargs,
-            )
-        filepath = args[0]
-        return self.manager.import_file(filepath, **kwargs)
+        return self.manager.import_file(*args)
+
+    def _cmd_imports(self, *args, **kwargs):
+        """
+        List contents of imported data.
+            > imports pids
+              (lists the contents of the imported data named "pids"
+            > imports
+               (lists the names of the imports
+        """
+        if not args:
+            return "\n".join(self.manager.imports.keys())
+        elif len(args) == 1:
+            try:
+                return self.manager.imports[args[0]]
+            except KeyError:
+                raise UsageError(
+                    self,
+                    "imports",
+                    f"there is no import named '{args[0]}'",
+                    *args,
+                    **kwargs,
+                )
+        else:
+            raise UsageError(self, "imports", "unexpected arguments", *args, **kwargs)
 
     def _cmd_internal(self, *args, **kwargs):
         """
         List all places in the internal gazetteer.
+            > internal
         """
         table = self._rich_table(
             title="Contents of the internal gazetteer",
@@ -238,7 +271,10 @@ class Interpreter:
         return self.manager.load(args[0])
 
     def _cmd_quit(self, *args, **kwargs):
-        """Quit the program."""
+        """
+        Quit the program.
+            > quit
+        """
         exit()
 
     def _cmd_save(self, *args, **kwargs):

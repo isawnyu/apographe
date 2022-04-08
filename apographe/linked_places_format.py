@@ -34,14 +34,14 @@ logger = logging.getLogger(__name__)
 
 def dump(obj, fp, ensure_ascii=True, indent=None, sort_keys=False):
     """Serialize obj to Linked Places Format GeoJSON and save to fp."""
-    if not isinstance(obj, Serialization):
+    if not isinstance(obj, (list, Serialization)):
         raise TypeError(type(obj))
     fp.write(dumps(obj, ensure_ascii=ensure_ascii, indent=indent, sort_keys=sort_keys))
 
 
 def dumps(obj, ensure_ascii=True, indent=None, sort_keys=False):
     """Serialize obj to Linked Places Format GeoJSON and return as string."""
-    if not isinstance(obj, Serialization):
+    if not isinstance(obj, (list, Serialization)):
         raise TypeError(type(obj))
     dumpd = {
         "@context": "https://raw.githubusercontent.com/LinkedPasts/linked-places/master/linkedplaces-context-v1.1.jsonld",
@@ -50,8 +50,6 @@ def dumps(obj, ensure_ascii=True, indent=None, sort_keys=False):
     }
     if isinstance(obj, (list)):
         dumpd["features"].extend(obj)
-    elif isinstance(obj, (tuple)):
-        dumpd["features"].extend(list(obj))
     else:
         dumpd["features"].append(obj)
     return json.dumps(

@@ -125,24 +125,50 @@ class Pleiades(BackendWeb, Gazetteer):
     def _kwargs_from_json(self, data):
         kwargs = dict()
         copy_keys = ["title", "uri"]
+
+        # names
         for k in copy_keys:
             kwargs[k] = data[k]
-        kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]
-        kwargs["descriptions"] = [
-            {
-                "value": data["description"],
-                "language_tag": "en",
-                "id": f"{data['uri']}#description",
-            },
-            {
-                "value": data["details"],
-                "language_tag": "en",
-                "id": f"{data['uri']}#details",
-            },
-        ]
-        kwargs["geometries"] = [
-            self._kwargs_from_json_geometry(l["geometry"]) for l in data["locations"]
-        ]
+        try:
+            kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]
+        except KeyError:
+            kwargs["names"] = []
+
+        # descriptions
+        kwargs["descriptions"] = []
+        try:
+            data["description"]
+        except KeyError:
+            pass
+        else:
+            kwargs["descriptions"].append(
+                {
+                    "value": data["description"],
+                    "language_tag": "en",
+                    "id": f"{data['uri']}#description",
+                }
+            )
+        try:
+            data["details"]
+        except KeyError:
+            pass
+        else:
+            kwargs["descriptions"].append(
+                {
+                    "value": data["details"],
+                    "language_tag": "en",
+                    "id": f"{data['uri']}#description",
+                },
+            )
+
+        # geometries
+        try:
+            kwargs["geometries"] = [
+                self._kwargs_from_json_geometry(l["geometry"])
+                for l in data["locations"]
+            ]
+        except KeyError:
+            kwargs["geometries"] = []
         return kwargs
 
     def _kwargs_from_json_geometry(self, geometry):

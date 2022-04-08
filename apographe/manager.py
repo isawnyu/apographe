@@ -35,28 +35,43 @@ class Manager:
         self._search_results = dict()  # keep track of all search results this session
         self.logger = logging.getLogger(self.__class__.__name__)
 
-    def accession(self, gazetteer_name: str, place_id: str):
-        """Collect a place from a gazetteer and convert/copy it to the local list of places"""
-        gazetteer_interface, gazetteer_query_class = self.get_gazetteer(gazetteer_name)
-        gplace = gazetteer_interface.get(place_id)
-        place_key = slugify(gplace.properties.title)
-        try:
-            self.apographe[place_key]
-        except KeyError:
-            gplace.id = place_key
-            self.apographe[place_key] = gplace
+    def accession(self, *args, **kwargs):
+        # def accession(self, gazetteer_name: str, place_id: str):
+        pids = list()
+        if len(args) == 2 and len(kwargs) == 0:
+            # Collect a place from a gazetteer and convert/copy it to the local list of places"""
+            gazetteer_name, place_id = args
+            pids = [place_id]
+        elif len(args) == 1 and len(kwargs) == 1:
+            # accession from imported list
+            gazetteer_name = args[0]
+            import_key = kwargs["imports"]
+            pids = self.imports[import_key]
         else:
-            i = len([k for k in self.apographe.keys() if k.startswith(place_key)])
-            place_key = f"{place_key}-{i}"
-            gplace.id = place_key
-            self.apographe[place_key] = gplace
-        hit = {
-            "place_key": place_key,
-            "title": gplace.properties.title,
-            "uri": gplace.uri,
-            "summary": gplace.descriptions.description_strings[0],
-        }
-        return hit
+            raise ValueError("accession")
+        gazetteer_interface, gazetteer_query_class = self.get_gazetteer(gazetteer_name)
+        places = [gazetteer_interface.get(pid) for pid in pids]
+        places = {slugify(p.properties.title): p for p in places}
+        hits = list()
+        for pid, place in places.items():
+            try:
+                self.apographe[pid]
+            except KeyError:
+                place.id = pid
+                self.apographe[place.id] = place
+            else:
+                i = len([k for k in self.apographe.keys() if k.startswith(pid)])
+                place_id = f"{pid}-{i}"
+                place.id = place_id
+                self.apographe[place.id] = place
+            hit = {
+                "id": pid,
+                "title": place.properties.title,
+                "uri": place.uri,
+                "summary": place.descriptions.description_strings[0],
+            }
+            hits.append(hit)
+        return hits
 
     def change(self, place_id: str, **kwargs):
         self.logger.debug(f"id: {id}")
@@ -113,22 +128,25 @@ class Manager:
             )
         return place
 
-    def import_file(self, path: str, filetype: str, encoding="utf-8"):
+    def import_file(self, path: str, filetype=None, encoding="utf-8"):
         """Import a file for further processing."""
         filepath = Path(path)
         filepath = filepath.expanduser().resolve()
-        if filetype == "text":
+        ftype = filetype if filetype is not None else filepath.suffix[1:]
+        if ftype == "txt":
             with open(filepath, "r", encoding=encoding) as fp:
                 data = fp.read()
             del fp
             if "\n" in data:
-                data = data.split("\n")
+                data = [l.strip() for l in data.split("\n") if l.strip()]
             filename = filepath.name.split(".")[0]
             slug = slugify(filename)
-            self.imports[slug] = "data"
+            self.imports[slug] = data
         else:
-            raise NotImplementedError(f"Cannot import {path} (filetype: {filetype}).")
-        return f"Imported {filetype} file {filepath} and stored data as imports:{slug}."
+            raise NotImplementedError(
+                f"Cannot import {path} because filetype: {ftype} if not supported."
+            )
+        return f"Imported {ftype} file {filepath} and stored data as imports:{slug}."
 
     def internal(self):
         """List all places in the internal gazetteer."""
@@ -212,7 +230,17 @@ class Manager:
 
         if mode == "all" and dirpath and filename:
             # save all to a single LPF file
-            raise NotImplementedError(mode)
+            filename = "all.json"
+            with open(dirpath / filename, "w", encoding="utf-8") as fp:
+                dump(
+                    list(self.apographe.values()),
+                    fp,
+                    ensure_ascii=False,
+                    indent=4,
+                    sort_keys=True,
+                )
+            del fp
+            return f"Wrote {len(self.apographe)} places to {str(dirpath / filename)}."
         elif mode == "each" and dirpath and not filename:
             # save each place to a separate LPF file
             i = 0

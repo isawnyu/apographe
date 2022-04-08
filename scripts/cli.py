@@ -66,14 +66,26 @@ def interact(config_path, scan):
         except KeyboardInterrupt:
             r = i.execute("quit")
         else:
+            error = None
+            error_template = "[orange][bold]{prefix}: [/bold]{message}[/orange]"
             try:
                 r = i.execute(s)
+            except FileNotFoundError as err:
+                error = error_template.format(prefix="FILE NOT FOUND", message=str(err))
             except InvalidCommandError as err:
-                c.print(f"[orange][bold]INVALID COMMAND: [/bold]{str(err)}[/orange]")
-            except UsageError as err:
-                c.print(
-                    f"[orange][bold]COMMAND USAGE ERROR: [/bold]{str(err)}[/orange]"
+                error = error_template.format(
+                    prefix="INVALID COMMAND", message=str(err)
                 )
+            except NotImplementedError as err:
+                error = error_template.format(
+                    prefix="NOT IMPLEMENTED YET", message=str(err)
+                )
+            except UsageError as err:
+                error = error_template.format(
+                    prefix="COMMAND USAGE ERROR", message=str(err)
+                )
+            if error:
+                c.print(error)
             else:
                 c.print(r)
 
