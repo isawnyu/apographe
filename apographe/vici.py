@@ -26,8 +26,13 @@ class ViciQuery(Query):
         Query.__init__(self)
         self._supported_parameters = {
             "bbox": {"expected": (tuple, str), "behavior": self._preprocess_bbox},
+            "text": {
+                "expected": (str, list),
+                "list_behavior": "join",
+                "rename": "terms",
+            },
         }
-        self._default_web_parameters = {"zoom": "11"}
+        self._default_web_parameters = {"zoom": "11", "format": "json"}
 
     def _preprocess_bbox(self, bounds):
         """Prepare bbox parameters."""
@@ -59,7 +64,6 @@ class Vici(BackendWeb, Gazetteer):
             "place_suffix": "/json",
             "search_netloc": "vici.org",
             "search_scheme": "https",
-            "search_path": "/geojson.php",
             "expire_after": timedelta(hours=6),
             "respect_robots_txt": False,
         }
@@ -155,13 +159,49 @@ class Vici(BackendWeb, Gazetteer):
         return name_kwargs
 
     def _vici_web_search(self, query: ViciQuery):
-        params = self._prep_params(**query.parameters_for_web)
+        param_keys = list(query.parameters.keys())
+        if "bbox" in param_keys:
+            spatial_results = {
+                h["id"]: h for h in self._vici_web_bbox_search(query)["hits"]
+            }
+        if "text" in param_keys:
+            text_results = {
+                h["id"]: h for h in self._vici_web_text_search(query)["hits"]
+            }
+        if "bbox" in param_keys and "text" in param_keys:
+            spatial_ids = set(spatial_results.keys())
+            text_ids = set(text_results.keys())
+            ids = spatial_ids.intersection(text_ids)
+            combined_results = dict()
+            for id in ids:
+                try:
+                    h = spatial_results[id]
+                except KeyError:
+                    h = text_results[id]
+                combined_results[id] = h
+            return {"hits": list(combined_results.values())}
+        elif "bbox" in param_keys:
+            return {"hits": list(spatial_results.values())}
+        elif "text" in param_keys:
+            return {"hits": list(text_results.values())}
+
+    def _vici_web_bbox_search(self, query: ViciQuery):
+        bbox_query = deepcopy(query)
+        extraneous_keys = [
+            k for k in bbox_query.parameters.keys() if k not in ["bbox", "format"]
+        ]
+        for k in extraneous_keys:
+            try:
+                bbox_query.parameters.pop(k)
+            except KeyError:
+                pass
+        params = self._prep_params(**bbox_query.parameters_for_web)
         config = self.backend_configuration("web")
         query_uri = urlunparse(
             (
                 config["search_scheme"],
                 config["search_netloc"],
-                config["search_path"],
+                "/geojson.php",
                 "",
                 params,
                 "",
@@ -176,6 +216,40 @@ class Vici(BackendWeb, Gazetteer):
             hits.append(
                 {
                     "id": str(entry["id"]),
+                    "uri": f"https://vici.org/{entry['properties']['url']}",
+                    "title": entry["properties"]["title"],
+                    "summary": entry["properties"]["summary"],
+                }
+            )
+        return {"query": query_uri, "hits": hits}
+
+    def _vici_web_text_search(self, query: ViciQuery):
+        text_query = deepcopy(query)
+        try:
+            text_query.parameters.pop("bbox")
+        except KeyError:
+            pass
+        params = self._prep_params(**text_query.parameters_for_web)
+        config = self.backend_configuration("web")
+        query_uri = urlunparse(
+            (
+                config["search_scheme"],
+                config["search_netloc"],
+                "search.php",
+                "",
+                params,
+                "",
+            )
+        )
+        r = BackendWeb.search(self, query_uri)
+        hits = list()
+        j = r.json()
+        logger = logging.getLogger()
+        logger.debug(pformat(j, indent=4))
+        for entry in j["features"]:
+            hits.append(
+                {
+                    "id": str(entry["properties"]["id"]),
                     "uri": f"https://vici.org/{entry['properties']['url']}",
                     "title": entry["properties"]["title"],
                     "summary": entry["properties"]["summary"],
