@@ -15,6 +15,7 @@ from apographe.idai import IDAI, IDAIQuery
 from apographe.linked_places_format import dump, load
 from apographe.place import Place
 from apographe.pleiades import Pleiades, PleiadesQuery
+from apographe.vici import Vici, ViciQuery
 from copy import deepcopy
 from inspect import getdoc
 import logging
@@ -34,6 +35,7 @@ class Manager:
         self._gazetteers = {
             "idai": (IDAI, IDAIQuery),
             "pleiades": (Pleiades, PleiadesQuery),
+            "vici": (Vici, ViciQuery),
         }
         self.imports = dict()  # imported data
         self._search_results = dict()  # keep track of all search results this session
