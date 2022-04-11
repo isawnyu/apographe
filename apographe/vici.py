@@ -90,51 +90,43 @@ class Vici(BackendWeb, Gazetteer):
 
     def _kwargs_from_json(self, data):
         kwargs = dict()
-        copy_keys = ["title", "uri"]
+
+        # title
+        kwargs["title"] = data["properties"]["title"]
+
+        # uri
+        kwargs[
+            "uri"
+        ] = f"https://vici.org{'/'.join(data['properties']['url'].split('/')[:-1])}"
 
         # names
-        for k in copy_keys:
-            kwargs[k] = data[k]
-        try:
-            kwargs["names"] = [self._kwargs_from_json_name(n) for n in data["names"]]
-        except KeyError:
-            kwargs["names"] = []
+        kwargs["names"] = []
 
         # descriptions
         kwargs["descriptions"] = []
-        try:
-            data["description"]
-        except KeyError:
-            pass
-        else:
-            kwargs["descriptions"].append(
-                {
-                    "value": data["description"],
-                    "language_tag": "en",
-                    "id": f"{data['uri']}#description",
-                }
-            )
-        try:
-            data["details"]
-        except KeyError:
-            pass
-        else:
-            kwargs["descriptions"].append(
-                {
-                    "value": data["details"],
-                    "language_tag": "en",
-                    "id": f"{data['uri']}#description",
-                },
-            )
+        for d_source in ["summary", "text", "altText"]:
+            try:
+                desc = data["properties"][d_source]
+            except KeyError:
+                pass
+            else:
+                if desc.strip():
+                    d = {
+                        "value": desc,
+                        "id": f"{kwargs['uri']}#{d_source}",
+                    }
+                    d["language_tag"] = "und"
+                    if d_source in ["summary", "text"]:
+                        d["language_tag"] = "en"
+                    elif d_source == "altText":
+                        tag = data["properties"]["altLang"].strip()
+                        if tag:
+                            d["language_tag"] = tag
+                    kwargs["descriptions"].append(d)
 
         # geometries
-        try:
-            kwargs["geometries"] = [
-                self._kwargs_from_json_geometry(l["geometry"])
-                for l in data["locations"]
-            ]
-        except KeyError:
-            kwargs["geometries"] = []
+        kwargs["geometries"] = [self._kwargs_from_json_geometry(data["geometry"])]
+
         return kwargs
 
     def _kwargs_from_json_geometry(self, geometry):
